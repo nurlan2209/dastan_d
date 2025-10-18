@@ -67,17 +67,23 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (_resultController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
+              final nav = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final orderProvider = context.read<OrderProvider>();
+              final resultText = _resultController.text;
+
+              if (resultText.isEmpty) {
+                scaffoldMessenger.showSnackBar(
+
                   SnackBar(content: Text('Добавьте ссылку на результат')),
                 );
                 return;
               }
 
-              Navigator.pop(context);
+              nav.pop();
 
               try {
-                await context.read<OrderProvider>().updateOrder(orderId, {
+                await orderProvider.updateOrder(orderId, {
                   'status': 'completed',
                   'result': _resultController.text,
                 });

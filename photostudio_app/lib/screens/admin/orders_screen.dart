@@ -74,21 +74,20 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                       Text('${photographer.rating.toStringAsFixed(1)}'),
                     ],
                   ),
-                    onTap: () async {
+                  onTap: () async {
                     final nav = Navigator.of(dialogContext);
                     final scaffoldMessenger = ScaffoldMessenger.of(context);
                     final orderProvider = context.read<OrderProvider>();
 
                     nav.pop();
-  
+
                     try {
                       await orderProvider.updateOrder(orderId, {
                         'photographerId': photographer.id,
                         'status': 'assigned',
                       });
 
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      scaffoldMessenger.showSnackBar(
                         SnackBar(
                           content: Text(
                             'Фотограф назначен: ${photographer.name}',
@@ -97,7 +96,6 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                         ),
                       );
                     } catch (e) {
-                      if (!mounted) return;
                       scaffoldMessenger.showSnackBar(
                         SnackBar(
                           content: Text('Ошибка: $e'),
