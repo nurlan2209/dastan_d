@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/order_model.dart';
 
 class OrderCard extends StatelessWidget {
@@ -36,6 +37,16 @@ class OrderCard extends StatelessWidget {
       default:
         return status;
     }
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Ссылка скопирована'),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
   @override
@@ -84,11 +95,56 @@ class OrderCard extends StatelessWidget {
                       ),
                     ],
                     if (order.result != null && order.result!.isNotEmpty) ...[
+                      SizedBox(height: 16),
+                      Divider(),
                       SizedBox(height: 8),
-                      _buildInfoRow(
-                        Icons.photo_library,
-                        'Результат',
-                        order.result!,
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.photo_library,
+                            size: 20,
+                            color: Colors.green,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            'Результат работы',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.green),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SelectableText(
+                              order.result!,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                            SizedBox(height: 8),
+                            ElevatedButton.icon(
+                              onPressed: () =>
+                                  _copyToClipboard(context, order.result!),
+                              icon: Icon(Icons.copy, size: 16),
+                              label: Text('Скопировать ссылку'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ],
@@ -169,6 +225,31 @@ class OrderCard extends StatelessWidget {
                   color: Colors.green[700],
                 ),
               ),
+              if (order.status == 'completed' && order.result != null) ...[
+                SizedBox(height: 8),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check_circle, size: 16, color: Colors.green),
+                      SizedBox(width: 4),
+                      Text(
+                        'Результат доступен',
+                        style: TextStyle(
+                          color: Colors.green[700],
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         ),
