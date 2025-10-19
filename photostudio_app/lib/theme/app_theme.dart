@@ -1,103 +1,153 @@
-// photostudio_app/lib/theme/app_theme.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color _primary = Color(0xFF0D47A1);
-  static const Color _secondary = Color(0xFFFFAB00);
-  static const Color _lightGrey = Color(0xFFF5F5F5);
-  static const Color _darkGrey = Color(0xFF303030);
+  // --- Цветовая палитра ---
+  static const Color primaryDark = Color(
+    0xFF111827,
+  ); // Основной темный для кнопок и акцентов
+  static const Color backgroundLight = Color(
+    0xFFF9FAFB,
+  ); // Светло-серый фон для экранов
+  static const Color borderGrey = Color(
+    0xFFD1D5DB,
+  ); // Серый для границ полей ввода
+  static const Color cardBorderGrey = Color(
+    0xFFE5E7EB,
+  ); // Очень светлый серый для границ карточек
+  static const Color textPrimary = Color(0xFF111827); // Основной цвет текста
+  static const Color textSecondary = Color(
+    0xFF6B7280,
+  ); // Вторичный (серый) цвет текста
 
+  // --- Светлая тема ---
   static final ThemeData lightTheme = ThemeData(
-    primaryColor: _primary,
-    scaffoldBackgroundColor: _lightGrey,
-    colorScheme: const ColorScheme.light(
-      primary: _primary,
-      onPrimary: Colors.white,
-      secondary: _secondary,
-      onSecondary: Colors.black,
-      error: Colors.redAccent,
-      onError: Colors.white,
-      surface: Colors.white,
-      onSurface: _darkGrey,
-    ),
-    textTheme: GoogleFonts.nunitoSansTextTheme(
-      ThemeData.light().textTheme.apply(
-        bodyColor: _darkGrey,
-        displayColor: _darkGrey,
-      ),
-    ),
-    appBarTheme: AppBarTheme(
+    useMaterial3: true,
+    brightness: Brightness.light,
+    primaryColor: primaryDark,
+    scaffoldBackgroundColor: backgroundLight,
+    fontFamily: 'Inter', // Используем шрифт Inter как в макете
+    // --- Стили AppBar ---
+    appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
-      foregroundColor: _darkGrey,
       elevation: 1,
-      titleTextStyle: GoogleFonts.nunitoSans(
+      surfaceTintColor: Colors.transparent, // Убирает оттенок в Material 3
+      iconTheme: IconThemeData(color: textPrimary),
+      titleTextStyle: TextStyle(
+        color: textPrimary,
         fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: _darkGrey,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'Inter',
       ),
-      iconTheme: const IconThemeData(color: _darkGrey),
     ),
-    // 1. ИСПРАВЛЕНО: CardTheme -> CardThemeData
-    cardTheme: const CardThemeData(
-      color: Colors.white,
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-      ),
-      margin: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
-    ),
+
+    // --- Стили кнопок ---
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: _primary,
+        backgroundColor: primaryDark,
         foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        textStyle: GoogleFonts.nunitoSans(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        textStyle: const TextStyle(
           fontSize: 16,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w500,
+          fontFamily: 'Inter',
         ),
       ),
     ),
-    inputDecorationTheme: InputDecorationTheme(
+
+    // --- Стили полей ввода ---
+    inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        borderSide: BorderSide(color: borderGrey),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        borderSide: BorderSide(color: borderGrey),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _primary, width: 2),
+        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        borderSide: BorderSide(color: primaryDark, width: 2.0),
       ),
-      labelStyle: GoogleFonts.nunitoSans(color: Colors.grey.shade600),
-      hintStyle: GoogleFonts.nunitoSans(color: Colors.grey.shade400),
+      labelStyle: TextStyle(
+        color: textSecondary,
+        fontWeight: FontWeight.w400,
+        fontFamily: 'Inter',
+      ),
     ),
+
+    // --- Стили карточек ---
+    cardTheme: CardTheme(
+      color: Colors.white,
+      elevation: 1.5,
+      shadowColor: Colors.black.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: cardBorderGrey),
+      ),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+    ),
+
+    // --- Стили текста ---
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: 'Inter',
+        color: textPrimary,
+        fontWeight: FontWeight.bold,
+        fontSize: 32,
+      ),
+      headlineMedium: TextStyle(
+        fontFamily: 'Inter',
+        color: textPrimary,
+        fontWeight: FontWeight.w600,
+        fontSize: 24,
+      ),
+      bodyLarge: TextStyle(
+        fontFamily: 'Inter',
+        color: Color(0xFF374151),
+        fontSize: 16,
+        height: 1.5,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: 'Inter',
+        color: textSecondary,
+        fontSize: 14,
+        letterSpacing: 0.1,
+      ),
+    ).apply(bodyColor: const Color(0xFF374151), displayColor: textPrimary),
+
+    // --- Стили для Chip (фильтры) ---
+    chipTheme: ChipThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: borderGrey),
+      ),
+      showCheckmark: false,
+      backgroundColor: Colors.white,
+      selectedColor: primaryDark,
+      labelStyle: const TextStyle(
+        color: textPrimary,
+        fontWeight: FontWeight.w500,
+      ),
+      secondaryLabelStyle: const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w500,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    ),
+
+    // --- Стили для TextButton ---
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: _primary,
-        textStyle: GoogleFonts.nunitoSans(fontWeight: FontWeight.bold),
+        foregroundColor: primaryDark,
+        textStyle: const TextStyle(
+          fontFamily: 'Inter',
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: _secondary,
-      foregroundColor: Colors.black,
-    ),
-    chipTheme: ChipThemeData(
-      // 2. ИСПРАВЛЕНО: withOpacity -> withValues
-      backgroundColor: _primary.withValues(alpha: 0.1),
-      labelStyle: GoogleFonts.nunitoSans(
-        color: _primary,
-        fontWeight: FontWeight.bold,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      side: BorderSide.none,
-    ),
-    useMaterial3: true,
   );
 }

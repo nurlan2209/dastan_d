@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,8 +14,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _phoneController =
-      TextEditingController(); // <-- Контроллер для телефона
+  final _phoneController = TextEditingController();
   String _role = 'client';
   bool _isLoading = false;
 
@@ -30,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _emailController.text,
         _passwordController.text,
         _role,
-        _phoneController.text, // <-- Передаем телефон
+        _phoneController.text,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -39,9 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (ctx) => const LoginScreen()),
-      );
+      Navigator.of(context).pushReplacementNamed('/login');
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -60,63 +56,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _phoneController.dispose(); // <-- Очищаем
+    _phoneController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final theme = Theme.of(context);
+
     return Scaffold(
+      appBar: AppBar(title: const Text('Регистрация')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.camera_alt_rounded,
-                    size: 60,
-                    color: theme.primaryColor,
-                  ),
-                  const SizedBox(height: 16),
                   Text(
-                    'Создать аккаунт',
+                    'Создайте аккаунт',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall,
+                    style: textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Введите свои данные для начала работы.',
+                    textAlign: TextAlign.center,
+                    style: textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.secondary,
+                    ),
                   ),
                   const SizedBox(height: 32),
+                  Text('Ваше имя', style: textTheme.labelSmall),
+                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
-                      labelText: 'Имя',
-                      prefixIcon: Icon(Icons.person_outline_rounded),
+                      hintText: 'Введите ваше имя',
                     ),
                     validator: (v) => v!.isEmpty ? 'Введите имя' : null,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+                  Text('Email', style: textTheme.labelSmall),
+                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.email_outlined),
+                      hintText: 'Введите ваш email',
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (v) => (v == null || !v.contains('@'))
                         ? 'Введите корректный Email'
                         : null,
                   ),
-                  const SizedBox(height: 16),
-                  // --- ДОБАВЛЕНО ПОЛЕ ТЕЛЕФОНА ---
+                  const SizedBox(height: 20),
+                  Text('Телефон', style: textTheme.labelSmall),
+                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _phoneController,
                     decoration: const InputDecoration(
-                      labelText: 'Телефон *',
-                      prefixIcon: Icon(Icons.phone_outlined),
                       hintText: '+7 7XX XXX XXXX',
                     ),
                     keyboardType: TextInputType.phone,
@@ -124,27 +126,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ? 'Введите номер телефона'
                         : null,
                   ),
-                  // ---------------------------------
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+                  Text('Пароль', style: textTheme.labelSmall),
+                  const SizedBox(height: 8),
                   TextFormField(
                     controller: _passwordController,
                     decoration: const InputDecoration(
-                      labelText: 'Пароль',
-                      prefixIcon: Icon(Icons.lock_outline_rounded),
+                      hintText: 'Создайте пароль',
                     ),
                     obscureText: true,
                     validator: (v) => (v == null || v.length < 6)
                         ? 'Пароль должен быть > 6 символов'
                         : null,
                   ),
-                  const SizedBox(height: 16),
-                  // Примечание: для обычных пользователей этот выбор роли лучше скрыть
+                  const SizedBox(height: 20),
+                  Text('Я хочу быть...', style: textTheme.labelSmall),
+                  const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     value: _role,
-                    decoration: const InputDecoration(
-                      labelText: 'Я хочу быть...',
-                      prefixIcon: Icon(Icons.cases_outlined),
-                    ),
+                    decoration: const InputDecoration(),
                     items: const [
                       DropdownMenuItem(
                         value: 'client',
@@ -158,25 +158,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     onChanged: (value) =>
                         setState(() => _role = value ?? 'client'),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   _isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : ElevatedButton(
-                          onPressed: _register,
-                          child: const Text('ЗАРЕГИСТРИРОВАТЬСЯ'),
+                      : SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _register,
+                            child: const Text('Зарегистрироваться'),
+                          ),
                         ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Уже есть аккаунт?'),
+                      Text(
+                        'Уже есть аккаунт?',
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (ctx) => const LoginScreen(),
-                            ),
-                          );
+                          Navigator.of(context).pop();
                         },
                         child: const Text('Войти'),
                       ),

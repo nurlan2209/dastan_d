@@ -1,9 +1,11 @@
+// user_model.dart
 class User {
   final String id;
   final String name;
   final String email;
   final String role;
   final double rating;
+  final String? phone;
 
   User({
     required this.id,
@@ -11,6 +13,7 @@ class User {
     required this.email,
     required this.role,
     this.rating = 0.0,
+    this.phone,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -20,6 +23,7 @@ class User {
       email: json['email'],
       role: json['role'],
       rating: (json['rating'] ?? 0).toDouble(),
+      phone: json['phone'],
     );
   }
 }

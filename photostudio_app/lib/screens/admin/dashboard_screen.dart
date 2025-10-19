@@ -1,89 +1,114 @@
-// [ИСПРАВЛЕННЫЙ ФАЙЛ]
-// photostudio_app/lib/screens/admin/dashboard_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+
+// Dummy screens for navigation placeholders
+class AdminOrdersScreen extends StatelessWidget {
+  const AdminOrdersScreen({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text("Управление заказами")),
+    body: const Center(child: Text("Страница заказов")),
+  );
+}
+
+class AdminUsersScreen extends StatelessWidget {
+  const AdminUsersScreen({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text("Пользователи")),
+    body: const Center(child: Text("Страница пользователей")),
+  );
+}
+
+class AdminReportsScreen extends StatelessWidget {
+  const AdminReportsScreen({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text("Отчеты")),
+    body: const Center(child: Text("Страница отчетов")),
+  );
+}
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   Future<void> _logout(BuildContext context) async {
-    // Проверка mounted не нужна, т.к. BuildContext используется до await
     await context.read<AuthProvider>().logout();
-    // А вот здесь нужна, но pushReplacementNamed безопаснее
-    Navigator.pushReplacementNamed(context, '/login');
+    // AuthWrapper handles navigation
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    // Список экранов для BottomNavBar (если вы решите его добавить)
-    // Я пока оставлю только Dashboard
-    final List<Widget> screens = [
-      _buildDashboardGrid(context), // Экран 0
-      // UsersScreen(),            // Экран 1
-      // ReportsScreen(),          // Экран 2
-    ];
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Админ-панель'),
+        title: const Text('Панель Администратора'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_outlined),
             onPressed: () => _logout(context),
+            tooltip: 'Выйти',
           ),
         ],
       ),
       body: _buildDashboardGrid(context),
-
-      // TODO: Вы можете легко добавить BottomNavBar здесь
-      // bottomNavigationBar: BottomNavigationBar(
-      //   currentIndex: 0,
-      //   onTap: (index) { /* ... */ },
-      //   items: const [
-      //     BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Главная'),
-      //     BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Юзеры'),
-      //     BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Отчеты'),
-      //   ],
-      // ),
     );
   }
 
-  // Виджет сетки (бывший body)
   Widget _buildDashboardGrid(BuildContext context) {
-    return GridView.count(
-      padding: const EdgeInsets.all(16.0),
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      children: [
-        _buildDashboardCard(
-          context,
-          'Все заказы',
-          Icons.assignment_outlined,
-          () => Navigator.pushNamed(context, '/admin/orders'),
-        ),
-        _buildDashboardCard(
-          context,
-          'Пользователи',
-          Icons.people_outline_rounded,
-          () => Navigator.pushNamed(context, '/admin/users'),
-        ),
-        _buildDashboardCard(
-          context,
-          'Отчёты',
-          Icons.analytics_outlined,
-          () => Navigator.pushNamed(context, '/admin/reports'),
-        ),
-        // УДАЛЕНА карточка "Уведомления"
-      ],
+    final theme = Theme.of(context);
+    final user = context.watch<AuthProvider>().user;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Добро пожаловать,',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.secondary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            user?.name ?? 'Администратор',
+            style: theme.textTheme.headlineMedium,
+          ),
+          const SizedBox(height: 24),
+          GridView.count(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            children: [
+              _buildDashboardCard(
+                context,
+                'Все заказы',
+                Icons.list_alt_outlined,
+                () => Navigator.pushNamed(context, '/admin/orders'),
+              ),
+              _buildDashboardCard(
+                context,
+                'Пользователи',
+                Icons.people_alt_outlined,
+                () => Navigator.pushNamed(context, '/admin/users'),
+              ),
+              _buildDashboardCard(
+                context,
+                'Отчёты',
+                Icons.analytics_outlined,
+                () => Navigator.pushNamed(context, '/admin/reports'),
+              ),
+              // Можно добавить еще карточек при необходимости
+            ],
+          ),
+        ],
+      ),
     );
   }
-  
-  // "Четкая" карточка (БЕЗ ГРАДИЕНТОВ)
+
   Widget _buildDashboardCard(
     BuildContext context,
     String title,
@@ -93,22 +118,17 @@ class DashboardScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      elevation: 2.0, // Из темы
       child: InkWell(
-        borderRadius: BorderRadius.circular(12.0), // Из темы
+        borderRadius: BorderRadius.circular(16.0),
         onTap: onTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 48,
-              color: theme.primaryColor, // Основной цвет темы
-            ),
+            Icon(icon, size: 40, color: theme.colorScheme.primary),
             const SizedBox(height: 16),
             Text(
               title,
-              style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
+              style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
           ],

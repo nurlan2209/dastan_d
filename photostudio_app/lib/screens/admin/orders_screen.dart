@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../models/user_model.dart';
 import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
-import '../../services/api_service.dart';
-import '../../widgets/order_card.dart';
 
 class AdminOrdersScreen extends StatefulWidget {
   const AdminOrdersScreen({super.key});
@@ -14,10 +12,8 @@ class AdminOrdersScreen extends StatefulWidget {
 }
 
 class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
-  final ApiService _api = ApiService();
-  String? _filterStatus;
-  List<User> _photographers = [];
   late Future<void> _loadDataFuture;
+  String _currentStatusFilter = 'all';
 
   @override
   void initState() {
@@ -25,19 +21,15 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     _loadDataFuture = _loadData();
   }
 
-  // Загружаем заказы и фотографов (для диалога назначения)
   Future<void> _loadData() async {
     try {
-      // Выполняем запросы параллельно для скорости
-      await Future.wait([
-        context.read<OrderProvider>().fetchOrders(status: _filterStatus),
-        _loadPhotographers(),
-      ]);
+      // Admin fetches all orders
+      await context.read<OrderProvider>().fetchOrders();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка загрузки данных: $e'),
+            content: Text('Ошибка загрузки заказов: $e'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -45,126 +37,93 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     }
   }
 
-  // Функция для загрузки ТОЛЬКО фотографов
-  Future<void> _loadPhotographers() async {
-    try {
-      // Бэкенд должен поддерживать /users?role=photographer
-      final response = await _api.get('/users?role=photographer');
-      if (!mounted) return;
+  // --- UI Helper Widgets ---
 
-      final photographerList = (response.data as List)
-          .map((json) => User.fromJson(json))
-          .toList();
+  Widget _buildStatusChip(BuildContext context, String status) {
+    Color chipColor;
+    String statusText;
 
-      setState(() {
-        _photographers = photographerList;
-      });
-    } catch (e) {
-      print('Could not load photographers: $e');
-      if (mounted) setState(() => _photographers = []);
+    switch (status.toLowerCase()) {
+      case 'pending':
+        chipColor = const Color(0xFFFEF3C7); // Amber 100
+        statusText = 'В ожидании';
+        break;
+      case 'confirmed':
+        chipColor = const Color(0xFFDBEAFE); // Blue 100
+        statusText = 'Подтвержден';
+        break;
+      case 'in_progress':
+        chipColor = const Color(0xFFDBEAFE); // Blue 100
+        statusText = 'В работе';
+        break;
+      case 'completed':
+        chipColor = const Color(0xFFD1FAE5); // Green 100
+        statusText = 'Завершен';
+        break;
+      case 'cancelled':
+        chipColor = const Color(0xFFFEE2E2); // Red 100
+        statusText = 'Отменен';
+        break;
+      default:
+        chipColor = const Color(0xFFF3F4F6); // Gray 100
+        statusText = status.toUpperCase();
     }
-  }
 
-  // Диалог назначения фотографа
-  Future<void> _assignPhotographer(String orderId) async {
-    if (_photographers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Нет доступных фотографов для назначения'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Назначить фотографа'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: _photographers.length,
-            itemBuilder: (context, index) {
-              final photographer = _photographers[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).primaryColor.withOpacity(0.1),
-                  child: Icon(
-                    Icons.camera_alt_outlined,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                ),
-                title: Text(photographer.name),
-                subtitle: Text(
-                  'Рейтинг: ${photographer.rating.toStringAsFixed(1)} ★',
-                ),
-                onTap: () async {
-                  final orderProvider = context.read<OrderProvider>();
-                  Navigator.of(dialogContext).pop();
-
-                  try {
-                    await orderProvider.updateOrder(orderId, {
-                      'photographerId': photographer.id,
-                      'status': 'confirmed',
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Назначен: ${photographer.name}'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Ошибка: $e'),
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                      ),
-                    );
-                  }
-                },
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Отмена'),
-          ),
-        ],
+    return Chip(
+      label: Text(statusText),
+      labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
+        color: const Color(0xFF1F2937), // Gray 800
+        fontWeight: FontWeight.w500,
       ),
+      backgroundColor: chipColor,
+      side: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
     );
   }
 
-  // Диалог удаления заказа
-  void _showDeleteDialog(Order order) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Удалить заказ?'),
-        content: Text(
-          'Вы уверены, что хотите удалить заказ "${order.service}"?',
+  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.secondary),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodyLarge,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Отмена'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<OrderProvider>().deleteOrder(order.id);
-            },
-            child: Text(
-              'Удалить',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+      ],
+    );
+  }
+
+  Widget _buildFilterChips() {
+    final filters = {
+      'all': 'Все',
+      'pending': 'В ожидании',
+      'confirmed': 'Подтвержденные',
+      'in_progress': 'В работе',
+      'completed': 'Завершенные',
+      'cancelled': 'Отмененные',
+    };
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        children: filters.entries.map((entry) {
+          final isSelected = _currentStatusFilter == entry.key;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ChoiceChip(
+              label: Text(entry.value),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) setState(() => _currentStatusFilter = entry.key);
+              },
             ),
-          ),
-        ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -174,26 +133,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Все заказы'),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.filter_list),
-            tooltip: 'Фильтр по статусу',
-            onSelected: (value) {
-              setState(() => _filterStatus = value == 'all' ? null : value);
-              context.read<OrderProvider>().fetchOrders(status: _filterStatus);
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'all', child: Text('Все')),
-              PopupMenuItem(value: 'pending', child: Text('Ожидают')),
-              PopupMenuItem(value: 'confirmed', child: Text('Назначенные')),
-              PopupMenuItem(value: 'completed', child: Text('Завершенные')),
-              PopupMenuItem(value: 'cancelled', child: Text('Отмененные')),
-            ],
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Все Заказы')),
       body: FutureBuilder(
         future: _loadDataFuture,
         builder: (context, snapshot) {
@@ -203,90 +143,122 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
           return Consumer<OrderProvider>(
             builder: (context, provider, child) {
-              if (provider.isLoading && provider.orders.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
-              }
+              final filteredOrders = provider.orders.where((order) {
+                if (_currentStatusFilter == 'all') return true;
+                return order.status == _currentStatusFilter;
+              }).toList();
 
-              if (provider.orders.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.inbox_outlined,
-                        size: 64,
-                        color: Colors.grey,
+              return Column(
+                children: [
+                  _buildFilterChips(),
+                  if (provider.isLoading && filteredOrders.isEmpty)
+                    const Expanded(
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else if (filteredOrders.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          'Заказы с таким статусом не найдены.',
+                          style: theme.textTheme.titleMedium,
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      Text('Нет заказов', style: theme.textTheme.titleLarge),
-                      if (_filterStatus != null)
-                        Text(
-                          'в категории "$_filterStatus"',
-                          style: theme.textTheme.bodyMedium,
+                    )
+                  else
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _loadData,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          itemCount: filteredOrders.length,
+                          itemBuilder: (context, index) {
+                            final order = filteredOrders[index];
+                            return _buildOrderCard(context, order);
+                          },
                         ),
-                    ],
-                  ),
-                );
-              }
-
-              return RefreshIndicator(
-                onRefresh: _loadData,
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(8.0),
-                  itemCount: provider.orders.length,
-                  itemBuilder: (context, index) {
-                    final order = provider.orders[index];
-                    return Column(
-                      children: [
-                        OrderCard(order: order, userRole: 'admin'),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () =>
-                                      _assignPhotographer(order.id),
-                                  icon: Icon(
-                                    order.photographerId == null
-                                        ? Icons.person_add_alt_1_rounded
-                                        : Icons.swap_horiz_rounded,
-                                    size: 20,
-                                  ),
-                                  label: Text(
-                                    order.photographerId == null
-                                        ? 'Назначить'
-                                        : 'Сменить',
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        order.photographerId == null
-                                        ? theme.primaryColor
-                                        : theme.colorScheme.secondary,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.delete_outline_rounded,
-                                  color: theme.colorScheme.error,
-                                ),
-                                onPressed: () => _showDeleteDialog(order),
-                                tooltip: 'Удалить заказ',
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                      ),
+                    ),
+                ],
               );
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildOrderCard(BuildContext context, Order order) {
+    final theme = Theme.of(context);
+    final clientName = order.client?.name ?? 'Неизвестный клиент';
+    final photographerName = order.photographer?.name ?? 'Не назначен';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    order.service,
+                    style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                _buildStatusChip(context, order.status),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: Text(
+                'ID: ${order.id}',
+                style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+              ),
+            ),
+            const Divider(),
+            const SizedBox(height: 8),
+            _buildInfoRow(context, Icons.person_outline, 'Клиент: $clientName'),
+            const SizedBox(height: 8),
+            _buildInfoRow(
+              context,
+              Icons.camera_alt_outlined,
+              'Фотограф: $photographerName',
+            ),
+            const SizedBox(height: 8),
+            _buildInfoRow(
+              context,
+              Icons.calendar_today_outlined,
+              DateFormat('d MMMM y, HH:mm', 'ru_RU').format(order.date),
+            ),
+            const SizedBox(height: 8),
+            _buildInfoRow(
+              context,
+              Icons.credit_card_outlined,
+              '${order.price.toStringAsFixed(0)} KZT',
+            ),
+            const SizedBox(height: 16),
+            // TODO: Add admin actions like assigning a photographer
+            if (order.status == 'pending')
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    // Placeholder for assigning photographer
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Функционал назначения в разработке'),
+                      ),
+                    );
+                  },
+                  child: const Text('Назначить фотографа'),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

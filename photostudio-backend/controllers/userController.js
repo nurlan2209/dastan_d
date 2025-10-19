@@ -1,18 +1,14 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
-exports.getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
-    // ДОБАВИТЬ ФИЛЬТРАЦИЮ ПО РОЛИ
-    const filter = {};
-    if (req.query.role) {
-      filter.role = req.query.role;
-    }
-
+    const { role } = req.query;
+    const filter = role ? { role } : {};
     const users = await User.find(filter).select("-password");
     res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

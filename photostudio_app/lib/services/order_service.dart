@@ -1,31 +1,56 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../models/order_model.dart';
-import 'api_service.dart';
+import '../providers/auth_provider.dart';
 
 class OrderService {
-  final ApiService _api = ApiService();
+  final AuthProvider? authProvider;
+  OrderService(this.authProvider);
 
-  Future<List<Order>> getOrders({String? status}) async {
-    final queryParams = status != null ? '?status=$status' : '';
-    final response = await _api.get('/orders$queryParams');
-    return (response.data as List).map((json) => Order.fromJson(json)).toList();
-  }
+  String? get _token => authProvider?.token;
 
-  Future<Order> getOrderById(String id) async {
-    final response = await _api.get('/orders/$id');
-    return Order.fromJson(response.data);
+  Future<List<Order>> getOrders() async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/orders'),
+      headers: {'Authorization': 'Bearer $_token'},
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((item) => Order.fromJson(item)).toList();
+    }
+    throw Exception('Failed to load orders');
   }
 
   Future<Order> createOrder(Map<String, dynamic> orderData) async {
-    final response = await _api.post('/orders', data: orderData);
-    return Order.fromJson(response.data);
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/orders'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_token',
+      },
+      body: json.encode(orderData),
+    );
+    if (response.statusCode == 201) {
+      return Order.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to create order: ${response.body}');
+    }
   }
 
-  Future<Order> updateOrder(String id, Map<String, dynamic> updates) async {
-    final response = await _api.put('/orders/$id', data: updates);
-    return Order.fromJson(response.data);
-  }
-
-  Future<void> deleteOrder(String id) async {
-    await _api.delete('/orders/$id');
+  Future<Order> updateOrder(String id, Map<String, dynamic> data) async {
+    final response = await http.put(
+      Uri.parse('${ApiConfig.baseUrl}/orders/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_token',
+      },
+      body: json.encode(data),
+    );
+    if (response.statusCode == 200) {
+      return Order.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to update order');
+    }
   }
 }
