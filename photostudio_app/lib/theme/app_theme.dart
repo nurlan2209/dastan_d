@@ -1,3 +1,4 @@
+// photostudio_app/lib/theme/app_theme.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -17,7 +18,6 @@ class AppTheme {
       onSecondary: Colors.black,
       error: Colors.redAccent,
       onError: Colors.white,
-      // 1. ИСПРАВЛЕНЫ УСТАРЕВШИЕ НАЗВАНИЯ
       surface: Colors.white,
       onSurface: _darkGrey,
     ),
@@ -38,12 +38,14 @@ class AppTheme {
       ),
       iconTheme: const IconThemeData(color: _darkGrey),
     ),
-    // 2. ИСПРАВЛЕНА ОШИБКА ТИПА: CardTheme -> CardThemeData
-    cardTheme: CardTheme(
+    // 1. ИСПРАВЛЕНО: CardTheme -> CardThemeData
+    cardTheme: const CardThemeData(
       color: Colors.white,
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+      margin: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
@@ -87,7 +89,8 @@ class AppTheme {
       foregroundColor: Colors.black,
     ),
     chipTheme: ChipThemeData(
-      backgroundColor: _primary.withOpacity(0.1),
+      // 2. ИСПРАВЛЕНО: withOpacity -> withValues
+      backgroundColor: _primary.withValues(alpha: 0.1),
       labelStyle: GoogleFonts.nunitoSans(
         color: _primary,
         fontWeight: FontWeight.bold,
