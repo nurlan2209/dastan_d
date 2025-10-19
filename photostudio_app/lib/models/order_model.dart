@@ -1,3 +1,16 @@
+class ClientInfo {
+  final String? name;
+  final String? phone;
+
+  ClientInfo({this.name, this.phone});
+}
+
+class PhotographerInfo {
+  final String? name;
+
+  PhotographerInfo({this.name});
+}
+
 class Order {
   final String id;
   final String clientId;
@@ -30,6 +43,17 @@ class Order {
     this.photographerName,
     this.clientPhone,
   });
+
+  // Добавляем геттеры для совместимости с кодом
+  ClientInfo? get client {
+    if (clientName == null) return null;
+    return ClientInfo(name: clientName, phone: clientPhone);
+  }
+
+  PhotographerInfo? get photographer {
+    if (photographerName == null) return null;
+    return PhotographerInfo(name: photographerName);
+  }
 
   factory Order.fromJson(Map<String, dynamic> json) {
     // Функция-помощник для безопасного извлечения ID

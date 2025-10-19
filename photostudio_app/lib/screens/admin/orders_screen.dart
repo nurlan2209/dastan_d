@@ -23,7 +23,6 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
   Future<void> _loadData() async {
     try {
-      // Admin fetches all orders
       await context.read<OrderProvider>().fetchOrders();
     } catch (e) {
       if (mounted) {
@@ -37,7 +36,159 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     }
   }
 
-  // --- UI Helper Widgets ---
+  void _showOrderDetails(Order order) {
+    final clientName = order.client?.name ?? 'Неизвестный клиент';
+    final clientPhone = order.client?.phone ?? 'Нет телефона';
+    final photographerName = order.photographer?.name ?? 'Не назначен';
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withAlpha(128),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        child: Container(
+          constraints: BoxConstraints(maxWidth: 500, maxHeight: 700),
+          padding: const EdgeInsets.all(24.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Детали заказа #ORD001',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Статус',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                  _buildStatusChip(context, order.status),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildDetailRow(Icons.person_outline, 'Клиент', clientName),
+              _buildDetailRow(Icons.phone_outlined, 'Телефон', clientPhone),
+              _buildDetailRow(
+                  Icons.camera_alt_outlined, 'Фотограф', photographerName),
+              _buildDetailRow(
+                Icons.calendar_today_outlined,
+                'Дата съёмки',
+                DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),
+              ),
+              _buildDetailRow(
+                  Icons.location_on_outlined, 'Локация', order.location),
+              _buildDetailRow(Icons.credit_card_outlined, 'Цена',
+                  '${order.price.toStringAsFixed(0)} ₽'),
+              const SizedBox(height: 24),
+              if (order.status == 'pending') ...[
+                Text(
+                  'Назначить фотографа',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    hintText: 'Выберите фотографа',
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  items: [
+                    DropdownMenuItem(value: '1', child: Text('Анна Петрова')),
+                    DropdownMenuItem(value: '2', child: Text('Иван Сидоров')),
+                  ],
+                  onChanged: (value) {},
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content:
+                                Text('Функционал назначения в разработке')),
+                      );
+                    },
+                    child: Text('Завершить заказ'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Назначить фотографа'),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Colors.grey.shade600),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.yellow.shade700;
+      case 'confirmed':
+        return Colors.yellow.shade700;
+      case 'in_progress':
+        return Colors.blue.shade600;
+      case 'completed':
+        return Colors.green.shade600;
+      case 'cancelled':
+        return Colors.red.shade600;
+      default:
+        return Colors.grey;
+    }
+  }
 
   Widget _buildStatusChip(BuildContext context, String status) {
     Color chipColor;
@@ -45,55 +196,59 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
     switch (status.toLowerCase()) {
       case 'pending':
-        chipColor = const Color(0xFFFEF3C7); // Amber 100
+        chipColor = const Color(0xFFFEF3C7);
         statusText = 'В ожидании';
         break;
       case 'confirmed':
-        chipColor = const Color(0xFFDBEAFE); // Blue 100
-        statusText = 'Подтвержден';
+        chipColor = const Color(0xFFDBEAFE);
+        statusText = 'Подтверждён';
         break;
       case 'in_progress':
-        chipColor = const Color(0xFFDBEAFE); // Blue 100
+        chipColor = const Color(0xFFDBEAFE);
         statusText = 'В работе';
         break;
       case 'completed':
-        chipColor = const Color(0xFFD1FAE5); // Green 100
-        statusText = 'Завершен';
+        chipColor = const Color(0xFFD1FAE5);
+        statusText = 'Завершён';
         break;
       case 'cancelled':
-        chipColor = const Color(0xFFFEE2E2); // Red 100
-        statusText = 'Отменен';
+        chipColor = const Color(0xFFFEE2E2);
+        statusText = 'Отменён';
         break;
       default:
-        chipColor = const Color(0xFFF3F4F6); // Gray 100
-        statusText = status.toUpperCase();
+        chipColor = const Color(0xFFF3F4F6);
+        statusText = status;
     }
 
     return Chip(
       label: Text(statusText),
       labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: const Color(0xFF1F2937), // Gray 800
-        fontWeight: FontWeight.w500,
-      ),
+            color: const Color(0xFF1F2937),
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
+          ),
       backgroundColor: chipColor,
       side: BorderSide.none,
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
+      visualDensity: VisualDensity.compact,
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Theme.of(context).colorScheme.secondary),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: Theme.of(context).textTheme.bodyLarge,
-            overflow: TextOverflow.ellipsis,
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade600),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade800),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -101,15 +256,15 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     final filters = {
       'all': 'Все',
       'pending': 'В ожидании',
-      'confirmed': 'Подтвержденные',
+      'confirmed': 'Подтверждён',
       'in_progress': 'В работе',
-      'completed': 'Завершенные',
-      'cancelled': 'Отмененные',
+      'completed': 'Завершён',
+      'cancelled': 'Отменён',
     };
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
         children: filters.entries.map((entry) {
           final isSelected = _currentStatusFilter == entry.key;
@@ -133,7 +288,20 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Все Заказы')),
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Управление заказами',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+            Text('Администратор',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+          ],
+        ),
+      ),
       body: FutureBuilder(
         future: _loadDataFuture,
         builder: (context, snapshot) {
@@ -151,11 +319,25 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
               return Column(
                 children: [
                   _buildFilterChips(),
-                  if (provider.isLoading && filteredOrders.isEmpty)
-                    const Expanded(
-                      child: Center(child: CircularProgressIndicator()),
-                    )
-                  else if (filteredOrders.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Найдено заказов: ${filteredOrders.length}',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        TextButton.icon(
+                          icon: Icon(Icons.refresh, size: 18),
+                          label: Text('Обновить'),
+                          onPressed: _loadData,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (filteredOrders.isEmpty)
                     Expanded(
                       child: Center(
                         child: Text(
@@ -169,11 +351,11 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                       child: RefreshIndicator(
                         onRefresh: _loadData,
                         child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                           itemCount: filteredOrders.length,
                           itemBuilder: (context, index) {
                             final order = filteredOrders[index];
-                            return _buildOrderCard(context, order);
+                            return _buildOrderCard(order);
                           },
                         ),
                       ),
@@ -187,77 +369,61 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     );
   }
 
-  Widget _buildOrderCard(BuildContext context, Order order) {
-    final theme = Theme.of(context);
+  Widget _buildOrderCard(Order order) {
     final clientName = order.client?.name ?? 'Неизвестный клиент';
     final photographerName = order.photographer?.name ?? 'Не назначен';
+    final borderColor = _getStatusColor(order.status);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    order.service,
-                    style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                _buildStatusChip(context, order.status),
-              ],
+    return InkWell(
+      onTap: () => _showOrderDetails(order),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border(left: BorderSide(color: borderColor, width: 4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(5),
+              blurRadius: 4,
+              offset: Offset(0, 2),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Text(
-                'ID: ${order.id}',
-                style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-              ),
-            ),
-            const Divider(),
-            const SizedBox(height: 8),
-            _buildInfoRow(context, Icons.person_outline, 'Клиент: $clientName'),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              context,
-              Icons.camera_alt_outlined,
-              'Фотограф: $photographerName',
-            ),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              context,
-              Icons.calendar_today_outlined,
-              DateFormat('d MMMM y, HH:mm', 'ru_RU').format(order.date),
-            ),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              context,
-              Icons.credit_card_outlined,
-              '${order.price.toStringAsFixed(0)} KZT',
-            ),
-            const SizedBox(height: 16),
-            // TODO: Add admin actions like assigning a photographer
-            if (order.status == 'pending')
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    // Placeholder for assigning photographer
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Функционал назначения в разработке'),
-                      ),
-                    );
-                  },
-                  child: const Text('Назначить фотографа'),
-                ),
-              ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      order.service,
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  _buildStatusChip(context, order.status),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'ID: ${order.id.substring(0, 8)}...',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              ),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.person_outline, 'Клиент: $clientName'),
+              _buildInfoRow(
+                  Icons.camera_alt_outlined, 'Фотограф: $photographerName'),
+              _buildInfoRow(
+                Icons.calendar_today_outlined,
+                DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),
+              ),
+              _buildInfoRow(Icons.location_on_outlined, order.location),
+            ],
+          ),
         ),
       ),
     );

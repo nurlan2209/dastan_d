@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../models/user_model.dart';
+import '../services/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
   String? _token;
@@ -23,22 +24,49 @@ class AuthProvider with ChangeNotifier {
   Future<void> login(String email, String password) async {
     try {
       final responseData = await _authService.login(email, password);
-      _token = responseData['token'];
-      _userId = responseData['user']['id'];
-      _role = responseData['user']['role'];
-      _user = User.fromJson(responseData['user']);
+      _token = responseData['accessToken'];
+      _userId = responseData['userId'];
+      _role = responseData['role'];
+
+      print('Token received: $_token');
+      print('Role: $_role');
+
+      // Получаем данные пользователя
+      try {
+        final userResponse = await http.get(
+          Uri.parse('${ApiConfig.baseUrl}/auth/me'),
+          headers: {'Authorization': 'Bearer $_token'},
+        ).timeout(Duration(seconds: 5));
+
+        print('User response status: ${userResponse.statusCode}');
+        print('User response body: ${userResponse.body}');
+
+        if (userResponse.statusCode == 200) {
+          _user = User.fromJson(json.decode(userResponse.body));
+        }
+      } catch (e) {
+        print('Error fetching user data: $e');
+        // Создаем базовый объект пользователя если не удалось загрузить
+        _user = User(
+          id: _userId ?? '',
+          name: email.split('@')[0],
+          email: email,
+          role: _role ?? 'client',
+        );
+      }
 
       final prefs = await SharedPreferences.getInstance();
       final userData = json.encode({
         'token': _token,
         'userId': _userId,
         'role': _role,
-        'user': responseData['user'],
+        'user': _user?.toJson(),
       });
       await prefs.setString('userData', userData);
 
       notifyListeners();
     } catch (e) {
+      print('Login error in provider: $e');
       rethrow;
     }
   }
@@ -67,7 +95,9 @@ class AuthProvider with ChangeNotifier {
     _token = extractedUserData['token'];
     _userId = extractedUserData['userId'];
     _role = extractedUserData['role'];
-    _user = User.fromJson(extractedUserData['user']);
+    if (extractedUserData['user'] != null) {
+      _user = User.fromJson(extractedUserData['user']);
+    }
     notifyListeners();
     return true;
   }
@@ -80,5 +110,10 @@ class AuthProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('userData');
     notifyListeners();
+  }
+
+  // Метод для обновления провайдеров
+  void update(AuthProvider authProvider) {
+    // Этот метод нужен для ChangeNotifierProxyProvider
   }
 }

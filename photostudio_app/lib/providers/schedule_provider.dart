@@ -4,14 +4,18 @@ import '../services/schedule_service.dart';
 import 'auth_provider.dart';
 
 class ScheduleProvider with ChangeNotifier {
-  final AuthProvider? _authProvider;
+  AuthProvider? _authProvider;
   List<Order> _scheduledOrders = [];
   bool _isLoading = false;
 
-  ScheduleProvider(this._authProvider);
+  ScheduleProvider();
 
   List<Order> get scheduledOrders => _scheduledOrders;
   bool get isLoading => _isLoading;
+
+  void update(AuthProvider authProvider) {
+    _authProvider = authProvider;
+  }
 
   Future<void> fetchSchedule() async {
     if (_authProvider?.token == null) return;

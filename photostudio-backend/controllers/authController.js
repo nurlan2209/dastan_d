@@ -32,7 +32,8 @@ const register = async (req, res) => {
   }
 };
 
-// Функция login остается без изменений
+exports.register = register; // ← ДОБАВЬ ЭТУ СТРОКУ
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -48,7 +49,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// Функция refresh остается без изменений
 exports.refresh = async (req, res) => {
   try {
     const { refreshToken } = req.body;

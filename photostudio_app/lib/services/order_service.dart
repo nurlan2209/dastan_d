@@ -53,4 +53,17 @@ class OrderService {
       throw Exception('Failed to update order');
     }
   }
+
+  Future<void> deleteOrder(String id) async {
+    final response = await http.delete(
+      Uri.parse('${ApiConfig.baseUrl}/orders/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_token',
+      },
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete order');
+    }
+  }
 }

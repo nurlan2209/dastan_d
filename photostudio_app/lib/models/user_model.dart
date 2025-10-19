@@ -1,4 +1,3 @@
-// user_model.dart
 class User {
   final String id;
   final String name;
@@ -25,5 +24,16 @@ class User {
       rating: (json['rating'] ?? 0).toDouble(),
       phone: json['phone'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'name': name,
+      'email': email,
+      'role': role,
+      'rating': rating,
+      'phone': phone,
+    };
   }
 }

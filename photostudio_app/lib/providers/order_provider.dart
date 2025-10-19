@@ -1,23 +1,39 @@
 import 'package:flutter/material.dart';
 import '../models/order_model.dart';
 import '../services/order_service.dart';
+import 'auth_provider.dart';
 
 class OrderProvider with ChangeNotifier {
-  final OrderService _orderService = OrderService();
+  AuthProvider? _authProvider;
+  late OrderService _orderService;
   List<Order> _orders = [];
   bool _isLoading = false;
 
+  OrderProvider() {
+    _orderService = OrderService(null);
+  }
+
   List<Order> get orders => _orders;
   bool get isLoading => _isLoading;
+
+  void update(AuthProvider authProvider) {
+    _authProvider = authProvider;
+    _orderService = OrderService(_authProvider);
+  }
 
   Future<void> fetchOrders({String? status}) async {
     _isLoading = true;
     notifyListeners();
 
-    _orders = await _orderService.getOrders(status: status);
-
-    _isLoading = false;
-    notifyListeners();
+    try {
+      _orders = await _orderService.getOrders();
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 
   Future<void> createOrder(Map<String, dynamic> orderData) async {

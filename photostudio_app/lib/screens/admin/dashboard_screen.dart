@@ -2,40 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
-// Dummy screens for navigation placeholders
-class AdminOrdersScreen extends StatelessWidget {
-  const AdminOrdersScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text("Управление заказами")),
-    body: const Center(child: Text("Страница заказов")),
-  );
-}
-
-class AdminUsersScreen extends StatelessWidget {
-  const AdminUsersScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text("Пользователи")),
-    body: const Center(child: Text("Страница пользователей")),
-  );
-}
-
-class AdminReportsScreen extends StatelessWidget {
-  const AdminReportsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text("Отчеты")),
-    body: const Center(child: Text("Страница отчетов")),
-  );
-}
-
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   Future<void> _logout(BuildContext context) async {
     await context.read<AuthProvider>().logout();
-    // AuthWrapper handles navigation
   }
 
   @override
@@ -101,7 +72,6 @@ class DashboardScreen extends StatelessWidget {
                 Icons.analytics_outlined,
                 () => Navigator.pushNamed(context, '/admin/reports'),
               ),
-              // Можно добавить еще карточек при необходимости
             ],
           ),
         ],

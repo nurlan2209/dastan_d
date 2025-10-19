@@ -12,6 +12,8 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+exports.getAllUsers = getAllUsers; // ← ДОБАВЬ ЭТУ СТРОКУ
+
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select("-password");

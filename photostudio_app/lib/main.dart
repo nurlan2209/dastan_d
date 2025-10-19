@@ -15,9 +15,9 @@ import 'screens/client/my_orders_screen.dart';
 import 'screens/client/create_order_screen.dart';
 import 'screens/photographer/photographer_home_screen.dart';
 import 'screens/admin/dashboard_screen.dart';
-import 'screens/admin/users_screen.dart';
-import 'screens/admin/orders_screen.dart';
-import 'screens/admin/reports_screen.dart';
+import 'screens/admin/users_screen.dart' as users;
+import 'screens/admin/orders_screen.dart' as orders;
+import 'screens/admin/reports_screen.dart' as reports;
 import 'theme/app_theme.dart';
 
 void main() {
@@ -34,19 +34,39 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (ctx) => AuthProvider()),
         ChangeNotifierProxyProvider<AuthProvider, OrderProvider>(
           create: (ctx) => OrderProvider(),
-          update: (ctx, auth, previous) => previous!..update(auth),
+          update: (ctx, auth, previous) {
+            if (previous == null) {
+              return OrderProvider()..update(auth);
+            }
+            return previous..update(auth);
+          },
         ),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (ctx) => UserProvider(),
-          update: (ctx, auth, previous) => previous!..update(auth),
+          update: (ctx, auth, previous) {
+            if (previous == null) {
+              return UserProvider()..update(auth);
+            }
+            return previous..update(auth);
+          },
         ),
         ChangeNotifierProxyProvider<AuthProvider, ReportProvider>(
           create: (ctx) => ReportProvider(),
-          update: (ctx, auth, previous) => previous!..update(auth),
+          update: (ctx, auth, previous) {
+            if (previous == null) {
+              return ReportProvider()..update(auth);
+            }
+            return previous..update(auth);
+          },
         ),
         ChangeNotifierProxyProvider<AuthProvider, ScheduleProvider>(
           create: (ctx) => ScheduleProvider(),
-          update: (ctx, auth, previous) => previous!..update(auth),
+          update: (ctx, auth, previous) {
+            if (previous == null) {
+              return ScheduleProvider()..update(auth);
+            }
+            return previous..update(auth);
+          },
         ),
       ],
       child: MaterialApp(
@@ -58,9 +78,7 @@ class MyApp extends StatelessWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
-          Locale('ru', ''), // Russian
-        ],
+        supportedLocales: const [Locale('ru', '')],
         locale: const Locale('ru'),
         home: const AuthWrapper(),
         routes: {
@@ -70,9 +88,9 @@ class MyApp extends StatelessWidget {
           '/create-order': (context) => const CreateOrderScreen(),
           '/photographer/home': (context) => const PhotographerHomeScreen(),
           '/admin/dashboard': (context) => const DashboardScreen(),
-          '/admin/users': (context) => const UsersScreen(),
-          '/admin/orders': (context) => const AdminOrdersScreen(),
-          '/admin/reports': (context) => const ReportsScreen(),
+          '/admin/users': (context) => const users.AdminUsersScreen(),
+          '/admin/orders': (context) => const orders.AdminOrdersScreen(),
+          '/admin/reports': (context) => const reports.AdminReportsScreen(),
         },
       ),
     );

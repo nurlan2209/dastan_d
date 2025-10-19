@@ -15,7 +15,7 @@ class PhotographerOrdersScreen extends StatefulWidget {
 
 class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
   late Future<void> _loadDataFuture;
-  String _currentStatusFilter = 'all'; // Состояние для фильтра
+  String _currentStatusFilter = 'all';
 
   @override
   void initState() {
@@ -24,7 +24,6 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
   }
 
   Future<void> _loadData() async {
-    // Ваша логика загрузки данных
     try {
       if (!mounted) return;
       await context.read<OrderProvider>().fetchOrders();
@@ -41,7 +40,6 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
   }
 
   Future<void> _updateStatus(String orderId, String status) async {
-    // Ваша логика обновления статуса
     final orderProvider = context.read<OrderProvider>();
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
@@ -63,7 +61,6 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
   }
 
   Future<void> _completeOrder(String orderId) async {
-    // Ваша логика завершения заказа
     final resultController = TextEditingController();
     final theme = Theme.of(context);
 
@@ -140,12 +137,19 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
     );
   }
 
-  Future<void> _logout() async {
-    // Ваша логика выхода
-    await context.read<AuthProvider>().logout();
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+      case 'confirmed':
+        return Colors.yellow.shade700;
+      case 'in_progress':
+        return Colors.blue.shade600;
+      case 'completed':
+        return Colors.green.shade600;
+      default:
+        return Colors.grey;
+    }
   }
-
-  // --- UI-хелперы обновлены под новый дизайн ---
 
   Widget _buildStatusChip(BuildContext context, String status) {
     Color chipColor;
@@ -153,65 +157,66 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
 
     switch (status.toLowerCase()) {
       case 'pending':
-        chipColor = const Color(0xFFFEF3C7); // Amber 100
-        statusText = 'Новый';
-        break;
       case 'confirmed':
-        chipColor = const Color(0xFFFEF3C7); // Amber 100
-        statusText = 'Новый';
+        chipColor = const Color(0xFFFEF3C7);
+        statusText = 'Подтверждён';
         break;
       case 'in_progress':
-        chipColor = const Color(0xFFDBEAFE); // Blue 100
+        chipColor = const Color(0xFFDBEAFE);
         statusText = 'В работе';
         break;
       case 'completed':
-        chipColor = const Color(0xFFD1FAE5); // Green 100
-        statusText = 'Завершен';
+        chipColor = const Color(0xFFD1FAE5);
+        statusText = 'Завершён';
         break;
       default:
-        chipColor = const Color(0xFFF3F4F6); // Gray 100
-        statusText = status.toUpperCase();
+        chipColor = const Color(0xFFF3F4F6);
+        statusText = status;
     }
 
     return Chip(
       label: Text(statusText),
       labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-        color: const Color(0xFF1F2937),
-        fontWeight: FontWeight.w500,
-      ),
+            color: const Color(0xFF1F2937),
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
+          ),
       backgroundColor: chipColor,
       side: BorderSide.none,
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
+      visualDensity: VisualDensity.compact,
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Theme.of(context).colorScheme.secondary),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: Theme.of(context).textTheme.bodyLarge,
-            overflow: TextOverflow.ellipsis,
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade600),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 15, color: Colors.grey.shade800),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildFilterChips() {
     final filters = {
       'all': 'Все',
-      'new': 'Новые', // pending + confirmed
-      'in_progress': 'В работе',
-      'completed': 'Завершенные',
+      'new': 'В ожидании',
+      'in_progress': 'Подтверждён',
+      'completed': 'Завершённые',
     };
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
         children: filters.entries.map((entry) {
           final isSelected = _currentStatusFilter == entry.key;
@@ -221,9 +226,7 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
               label: Text(entry.value),
               selected: isSelected,
               onSelected: (selected) {
-                if (selected) {
-                  setState(() => _currentStatusFilter = entry.key);
-                }
+                if (selected) setState(() => _currentStatusFilter = entry.key);
               },
             ),
           );
@@ -237,12 +240,23 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Мои Заказы'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Мои заказы',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+            Text('Фотограф',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout_outlined),
-            onPressed: _logout,
+            onPressed: () => context.read<AuthProvider>().logout(),
             tooltip: 'Выйти',
           ),
         ],
@@ -256,10 +270,6 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
 
           return Consumer<OrderProvider>(
             builder: (context, provider, child) {
-              if (provider.isLoading && provider.orders.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
               final filteredOrders = provider.orders.where((order) {
                 if (_currentStatusFilter == 'all') return true;
                 if (_currentStatusFilter == 'new') {
@@ -272,22 +282,35 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
               return Column(
                 children: [
                   _buildFilterChips(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Найдено заказов: ${filteredOrders.length}',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        TextButton.icon(
+                          icon: Icon(Icons.refresh, size: 18),
+                          label: Text('Обновить'),
+                          onPressed: _loadData,
+                        ),
+                      ],
+                    ),
+                  ),
                   if (filteredOrders.isEmpty)
                     Expanded(
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
-                              Icons.inbox_outlined,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
+                            Icon(Icons.inbox_outlined,
+                                size: 64, color: Colors.grey),
                             const SizedBox(height: 16),
-                            Text(
-                              'Нет заказов по данному фильтру',
-                              style: theme.textTheme.titleLarge,
-                            ),
+                            Text('Нет заказов по данному фильтру',
+                                style: theme.textTheme.titleLarge),
                           ],
                         ),
                       ),
@@ -297,11 +320,11 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
                       child: RefreshIndicator(
                         onRefresh: _loadData,
                         child: ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                           itemCount: filteredOrders.length,
                           itemBuilder: (context, index) {
                             final order = filteredOrders[index];
-                            return _buildOrderCard(context, order);
+                            return _buildOrderCard(order);
                           },
                         ),
                       ),
@@ -315,13 +338,25 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
     );
   }
 
-  Widget _buildOrderCard(BuildContext context, Order order) {
-    final theme = Theme.of(context);
+  Widget _buildOrderCard(Order order) {
     final clientName = order.client?.name ?? 'Неизвестный клиент';
     final clientPhone = order.client?.phone ?? 'Нет номера';
+    final borderColor = _getStatusColor(order.status);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(left: BorderSide(color: borderColor, width: 4)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -333,53 +368,41 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
                 Expanded(
                   child: Text(
                     order.service,
-                    style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
-                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                 ),
                 _buildStatusChip(context, order.status),
               ],
             ),
             const SizedBox(height: 12),
-            const Divider(),
-            const SizedBox(height: 12),
+            _buildInfoRow(Icons.person_outline, '$clientName\n$clientPhone'),
+            _buildInfoRow(Icons.camera_alt_outlined, 'Вы'),
             _buildInfoRow(
-              context,
-              Icons.person_outline,
-              '$clientName ($clientPhone)',
-            ),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              context,
               Icons.calendar_today_outlined,
-              DateFormat('d MMMM y, HH:mm', 'ru_RU').format(order.date),
+              DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),
             ),
-            const SizedBox(height: 8),
-            _buildInfoRow(context, Icons.location_on_outlined, order.location),
-            const SizedBox(height: 8),
-            _buildInfoRow(
-              context,
-              Icons.credit_card_outlined,
-              '${order.price.toStringAsFixed(0)} KZT',
-            ),
-            const SizedBox(height: 16),
-            _buildActionButtons(context, order),
+            _buildInfoRow(Icons.location_on_outlined, order.location),
+            const SizedBox(height: 12),
+            _buildActionButtons(order),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, Order order) {
+  Widget _buildActionButtons(Order order) {
     switch (order.status) {
-      case 'pending': // Действие для новых заказов
+      case 'pending':
       case 'confirmed':
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => _updateStatus(order.id, 'in_progress'),
-            icon: const Icon(Icons.play_arrow_rounded),
+            icon: const Icon(Icons.play_arrow_rounded, size: 20),
             label: const Text('Начать работу'),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 12),
+            ),
           ),
         );
       case 'in_progress':
@@ -387,15 +410,12 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => _completeOrder(order.id),
-            icon: const Icon(Icons.check_circle_outline_rounded),
-            label: const Text('Завершить и отправить результат'),
+            icon: const Icon(Icons.upload_outlined, size: 20),
+            label: const Text('Загрузить результаты'),
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 12),
+            ),
           ),
-        );
-      case 'completed':
-        return _buildInfoRow(
-          context,
-          Icons.check_circle_outline,
-          'Результат отправлен',
         );
       default:
         return const SizedBox.shrink();

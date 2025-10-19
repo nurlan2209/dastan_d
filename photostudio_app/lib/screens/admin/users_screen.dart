@@ -42,7 +42,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
         roleText = 'Фотограф';
         iconData = Icons.camera_alt_outlined;
         break;
-      default: // client
+      default:
         chipColor = Colors.grey.shade200;
         roleText = 'Клиент';
         iconData = Icons.person_outline;
@@ -92,8 +92,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: theme.colorScheme.primary
-                              .withOpacity(0.1),
+                          backgroundColor:
+                              theme.colorScheme.primary.withOpacity(0.1),
                           foregroundColor: theme.colorScheme.primary,
                           child: Text(user.name.substring(0, 1).toUpperCase()),
                         ),

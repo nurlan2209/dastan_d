@@ -4,14 +4,18 @@ import '../services/user_service.dart';
 import 'auth_provider.dart';
 
 class UserProvider with ChangeNotifier {
-  final AuthProvider? _authProvider;
+  AuthProvider? _authProvider;
   List<User> _users = [];
   bool _isLoading = false;
 
-  UserProvider(this._authProvider);
+  UserProvider();
 
   List<User> get users => _users;
   bool get isLoading => _isLoading;
+
+  void update(AuthProvider authProvider) {
+    _authProvider = authProvider;
+  }
 
   Future<void> fetchUsers() async {
     if (_authProvider?.token == null) return;
@@ -22,7 +26,6 @@ class UserProvider with ChangeNotifier {
       final userService = UserService(_authProvider!.token);
       _users = await userService.fetchUsers();
     } catch (error) {
-      // In a real app, you'd handle this error more gracefully
       print('Error fetching users: $error');
       _users = [];
     } finally {

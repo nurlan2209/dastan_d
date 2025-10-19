@@ -1,36 +1,23 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // --- Цветовая палитра ---
-  static const Color primaryDark = Color(
-    0xFF111827,
-  ); // Основной темный для кнопок и акцентов
-  static const Color backgroundLight = Color(
-    0xFFF9FAFB,
-  ); // Светло-серый фон для экранов
-  static const Color borderGrey = Color(
-    0xFFD1D5DB,
-  ); // Серый для границ полей ввода
-  static const Color cardBorderGrey = Color(
-    0xFFE5E7EB,
-  ); // Очень светлый серый для границ карточек
-  static const Color textPrimary = Color(0xFF111827); // Основной цвет текста
-  static const Color textSecondary = Color(
-    0xFF6B7280,
-  ); // Вторичный (серый) цвет текста
+  static const Color primaryDark = Color(0xFF111827);
+  static const Color backgroundLight = Color(0xFFF9FAFB);
+  static const Color borderGrey = Color(0xFFD1D5DB);
+  static const Color cardBorderGrey = Color(0xFFE5E7EB);
+  static const Color textPrimary = Color(0xFF111827);
+  static const Color textSecondary = Color(0xFF6B7280);
 
-  // --- Светлая тема ---
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     primaryColor: primaryDark,
     scaffoldBackgroundColor: backgroundLight,
-    fontFamily: 'Inter', // Используем шрифт Inter как в макете
-    // --- Стили AppBar ---
+    fontFamily: 'Inter',
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.white,
       elevation: 1,
-      surfaceTintColor: Colors.transparent, // Убирает оттенок в Material 3
+      surfaceTintColor: Colors.transparent,
       iconTheme: IconThemeData(color: textPrimary),
       titleTextStyle: TextStyle(
         color: textPrimary,
@@ -39,8 +26,6 @@ class AppTheme {
         fontFamily: 'Inter',
       ),
     ),
-
-    // --- Стили кнопок ---
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryDark,
@@ -54,8 +39,6 @@ class AppTheme {
         ),
       ),
     ),
-
-    // --- Стили полей ввода ---
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: Colors.white,
@@ -78,20 +61,16 @@ class AppTheme {
         fontFamily: 'Inter',
       ),
     ),
-
-    // --- Стили карточек ---
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       elevation: 1.5,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withAlpha(13),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: const BorderSide(color: cardBorderGrey),
       ),
       margin: const EdgeInsets.symmetric(vertical: 8),
     ),
-
-    // --- Стили текста ---
     textTheme: const TextTheme(
       displayLarge: TextStyle(
         fontFamily: 'Inter',
@@ -118,8 +97,6 @@ class AppTheme {
         letterSpacing: 0.1,
       ),
     ).apply(bodyColor: const Color(0xFF374151), displayColor: textPrimary),
-
-    // --- Стили для Chip (фильтры) ---
     chipTheme: ChipThemeData(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
@@ -138,8 +115,6 @@ class AppTheme {
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
     ),
-
-    // --- Стили для TextButton ---
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: primaryDark,
