@@ -78,16 +78,11 @@ class DashboardScreen extends StatelessWidget {
           Icons.analytics_outlined,
           () => Navigator.pushNamed(context, '/admin/reports'),
         ),
-        _buildDashboardCard(
-          context,
-          'Уведомления',
-          Icons.notifications_outlined,
-          () => Navigator.pushNamed(context, '/notifications'),
-        ),
+        // УДАЛЕНА карточка "Уведомления"
       ],
     );
   }
-
+  
   // "Четкая" карточка (БЕЗ ГРАДИЕНТОВ)
   Widget _buildDashboardCard(
     BuildContext context,

@@ -1,5 +1,4 @@
 const Order = require("../models/Order");
-const { sendNotification } = require("../utils/socketHandler");
 
 exports.createOrder = async (req, res) => {
   try {
@@ -43,21 +42,6 @@ exports.updateOrder = async (req, res) => {
     const order = await Order.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
-
-    if (req.body.photographerId) {
-      sendNotification(
-        req.body.photographerId,
-        "Вам назначен новый заказ",
-        "order_update"
-      );
-    }
-    if (req.body.status) {
-      sendNotification(
-        order.clientId,
-        `Статус заказа изменен: ${req.body.status}`,
-        "order_update"
-      );
-    }
 
     res.json(order);
   } catch (err) {

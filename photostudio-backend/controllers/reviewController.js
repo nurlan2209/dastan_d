@@ -1,6 +1,5 @@
 const Review = require("../models/Review");
 const User = require("../models/User");
-const { sendNotification } = require("../utils/socketHandler");
 
 exports.createReview = async (req, res) => {
   try {
@@ -14,12 +13,6 @@ exports.createReview = async (req, res) => {
     await User.findByIdAndUpdate(req.body.photographerId, {
       rating: avgRating,
     });
-
-    sendNotification(
-      req.body.photographerId,
-      "Вы получили новый отзыв",
-      "review"
-    );
 
     res.status(201).json(review);
   } catch (err) {

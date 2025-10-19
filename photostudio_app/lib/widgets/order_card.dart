@@ -1,18 +1,15 @@
-// [ИСПРАВЛЕННЫЙ ФАЙЛ]
 // photostudio_app/lib/widgets/order_card.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart'; // <-- 1. Добавлен импорт для даты
+import 'package:intl/intl.dart';
 import '../models/order_model.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
-  // --- 2. Добавлены параметры для имен ---
-  // (Они нужны, т.к. в order только ID)
   final String? clientName;
   final String? photographerName;
-  final String userRole; // 'client', 'admin', 'photographer'
+  final String userRole;
 
   const OrderCard({
     super.key,
@@ -22,7 +19,6 @@ class OrderCard extends StatelessWidget {
     this.photographerName,
   });
 
-  // --- 3. "Четкий" чип статуса ---
   Widget _buildStatusChip(BuildContext context, String status) {
     Color chipColor;
     Color textColor = Colors.white;
@@ -64,7 +60,6 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  // --- 4. "Четкая" строка-помощник ---
   Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,13 +96,10 @@ class OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // --- 5. "Четкая" карточка ---
     return Card(
-      // Использует стиль из AppTheme
       child: InkWell(
         borderRadius: BorderRadius.circular(12.0),
         onTap: () {
-          // --- 6. "Четкий" AlertDialog ---
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -117,17 +109,35 @@ class OrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Используем _buildInfoRow для чистоты
+                    // --- ИСПРАВЛЕНИЕ: Показываем имя клиента для всех ролей кроме клиента ---
                     if (userRole != 'client' && clientName != null)
                       _buildInfoRow(context, Icons.person_outline, clientName!),
-                    if (userRole != 'photographer' && photographerName != null)
+
+                    // --- ДОБАВЛЕНО: Показываем телефон клиента для админа ---
+                    if (userRole == 'admin' &&
+                        order.clientPhone != null &&
+                        order.clientPhone!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _buildInfoRow(
+                        context,
+                        Icons.phone_outlined,
+                        order.clientPhone!,
+                      ),
+                    ],
+
+                    if (userRole != 'photographer' &&
+                        photographerName != null) ...[
+                      const SizedBox(height: 8),
                       _buildInfoRow(
                         context,
                         Icons.camera_alt_outlined,
                         photographerName!,
                       ),
+                    ],
 
                     const SizedBox(height: 8),
+                    const Divider(height: 24),
+
                     _buildInfoRow(
                       context,
                       Icons.location_on_outlined,
@@ -145,6 +155,7 @@ class OrderCard extends StatelessWidget {
                       Icons.monetization_on_outlined,
                       '${order.price} ₸',
                     ),
+
                     if (order.comment != null && order.comment!.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       _buildInfoRow(
@@ -153,6 +164,7 @@ class OrderCard extends StatelessWidget {
                         order.comment!,
                       ),
                     ],
+
                     if (order.result != null && order.result!.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       const Divider(),
@@ -176,7 +188,6 @@ class OrderCard extends StatelessWidget {
                               style: const TextStyle(fontSize: 14),
                             ),
                             const SizedBox(height: 8),
-                            // Кнопка использует стиль темы
                             TextButton.icon(
                               onPressed: () =>
                                   _copyToClipboard(context, order.result!),
@@ -221,7 +232,6 @@ class OrderCard extends StatelessWidget {
               const Divider(height: 1),
               const SizedBox(height: 12),
 
-              // --- 7. "Четкий" блок информации ---
               _buildInfoRow(
                 context,
                 Icons.calendar_today_outlined,
@@ -235,7 +245,6 @@ class OrderCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
 
-              // Показываем фотографа (если он есть)
               if (photographerName != null) ...[
                 _buildInfoRow(
                   context,
@@ -245,7 +254,6 @@ class OrderCard extends StatelessWidget {
                 const SizedBox(height: 8),
               ],
 
-              // Показываем результат (если он есть)
               if (order.status == 'completed' && order.result != null) ...[
                 _buildInfoRow(
                   context,
