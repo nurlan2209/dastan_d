@@ -1,15 +1,23 @@
+// [ИСПРАВЛЕННЫЙ ФАЙЛ]
+// photostudio_app/lib/screens/admin/users_screen.dart
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
+// import 'package:provider/provider.dart'; // <-- 1. УДАЛЕНО (unused)
+// import '../../providers/auth_provider.dart'; // <-- 1. УДАЛЕНО (unused)
 import '../../services/api_service.dart';
 import '../../models/user_model.dart';
 
 class UsersScreen extends StatefulWidget {
+  // 2. Добавлен super.key
+  const UsersScreen({super.key});
+
   @override
-  _UsersScreenState createState() => _UsersScreenState();
+  // 3. Переименовано в UsersScreenState (без '_')
+  UsersScreenState createState() => UsersScreenState();
 }
 
-class _UsersScreenState extends State<UsersScreen> {
+// 3. Переименовано в UsersScreenState (без '_')
+class UsersScreenState extends State<UsersScreen> {
   final ApiService _api = ApiService();
   List<User> _users = [];
   bool _isLoading = true;
@@ -24,6 +32,7 @@ class _UsersScreenState extends State<UsersScreen> {
     setState(() => _isLoading = true);
     try {
       final response = await _api.get('/users');
+      if (!mounted) return;
       setState(() {
         _users = (response.data as List)
             .map((json) => User.fromJson(json))
@@ -31,7 +40,14 @@ class _UsersScreenState extends State<UsersScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading users: $e');
+      if (!mounted) return;
+      // 4. Убрана строка print()
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка загрузки: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
       setState(() => _isLoading = false);
     }
   }
@@ -39,27 +55,49 @@ class _UsersScreenState extends State<UsersScreen> {
   Future<void> _deleteUser(String id) async {
     try {
       await _api.delete('/users/$id');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Пользователь удалён')));
-      _loadUsers();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Пользователь удалён'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadUsers(); // Обновляем список
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Ошибка удаления: $e')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка удаления: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
-  Color _getRoleColor(String role) {
+  // --- Используем цвета из ТЕМЫ ---
+  Color _getRoleColor(String role, ThemeData theme) {
     switch (role) {
       case 'admin':
-        return Colors.red;
+        return theme.primaryColor;
       case 'photographer':
-        return Colors.blue;
+        return theme.colorScheme.secondary; // Янтарный
       case 'client':
-        return Colors.green;
+        return Colors.green; // Оставим зеленый для клиентов
       default:
         return Colors.grey;
+    }
+  }
+
+  IconData _getRoleIcon(String role) {
+    switch (role) {
+      case 'admin':
+        return Icons.admin_panel_settings_rounded;
+      case 'photographer':
+        return Icons.camera_alt_rounded;
+      case 'client':
+        return Icons.person_rounded;
+      default:
+        return Icons.person_outline_rounded;
     }
   }
 
@@ -76,109 +114,115 @@ class _UsersScreenState extends State<UsersScreen> {
     }
   }
 
-  Future<void> _logout() async {
-    await context.read<AuthProvider>().logout();
-    Navigator.pushReplacementNamed(context, '/login');
+  // --- Диалог удаления ---
+  void _showDeleteDialog(User user) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Удалить пользователя?'),
+        content: Text('Вы уверены, что хотите удалить ${user.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Отмена'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _deleteUser(user.id);
+            },
+            child: Text(
+              'Удалить',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final role = context.watch<AuthProvider>().role;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text(
-          'Пользователи',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.green,
-        elevation: 0,
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text('Роль: $role', style: TextStyle(fontSize: 14)),
-              ),
-            ),
-          ),
-          IconButton(icon: Icon(Icons.logout), onPressed: _logout),
-        ],
+        title: Text('Пользователи'),
+        // Убираем actions, т.к. logout есть в Dashboard
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _users.isEmpty
-          ? Center(child: Text('Нет пользователей'))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.people_outline, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('Нет пользователей', style: theme.textTheme.titleLarge),
+                ],
+              ),
+            )
           : RefreshIndicator(
               onRefresh: _loadUsers,
               child: ListView.builder(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(8.0),
                 itemCount: _users.length,
                 itemBuilder: (context, index) {
                   final user = _users[index];
+                  final roleColor = _getRoleColor(user.role, theme);
+
                   return Card(
-                    elevation: 3,
-                    margin: EdgeInsets.only(bottom: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    // Используем Card из темы
                     child: ListTile(
-                      contentPadding: EdgeInsets.all(16),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 8.0,
+                        horizontal: 16.0,
+                      ),
                       leading: CircleAvatar(
-                        backgroundColor: _getRoleColor(user.role),
-                        child: Icon(
-                          user.role == 'photographer'
-                              ? Icons.camera_alt
-                              : user.role == 'admin'
-                              ? Icons.admin_panel_settings
-                              : Icons.person,
-                          color: Colors.white,
+                        // 5. Исправлено 'withOpacity'
+                        backgroundColor: roleColor.withAlpha(
+                          (255 * 0.15).round(),
                         ),
+                        child: Icon(_getRoleIcon(user.role), color: roleColor),
                       ),
-                      title: Text(
-                        user.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
+                      title: Text(user.name, style: theme.textTheme.labelLarge),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(height: 4),
-                          Text(user.email),
-                          SizedBox(height: 4),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _getRoleColor(user.role).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
+                          const SizedBox(height: 4),
+                          Text(user.email, style: theme.textTheme.bodyMedium),
+                          const SizedBox(height: 4),
+                          Chip(
+                            label: Text(
                               _getRoleText(user.role),
-                              style: TextStyle(
-                                color: _getRoleColor(user.role),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: roleColor,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 12,
                               ),
                             ),
+                            // 5. Исправлено 'withOpacity'
+                            backgroundColor: roleColor.withAlpha(
+                              (255 * 0.1).round(),
+                            ),
+                            side: BorderSide.none,
+                            visualDensity: VisualDensity.compact,
                           ),
+
                           if (user.role == 'photographer') ...[
                             SizedBox(height: 4),
                             Row(
                               children: [
-                                Icon(Icons.star, size: 16, color: Colors.amber),
+                                Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: theme.colorScheme.secondary,
+                                ),
                                 SizedBox(width: 4),
-                                Text('${user.rating.toStringAsFixed(1)}'),
+                                Text(
+                                  user.rating.toStringAsFixed(1),
+                                  style: theme.textTheme.bodyMedium,
+                                ),
                               ],
                             ),
                           ],
@@ -186,32 +230,11 @@ class _UsersScreenState extends State<UsersScreen> {
                       ),
                       trailing: user.role != 'admin'
                           ? IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Удалить пользователя?'),
-                                    content: Text('Вы уверены?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('Отмена'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          _deleteUser(user.id);
-                                        },
-                                        child: Text(
-                                          'Удалить',
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
+                              icon: Icon(
+                                Icons.delete_outline_rounded,
+                                color: theme.colorScheme.error,
+                              ),
+                              onPressed: () => _showDeleteDialog(user),
                             )
                           : null,
                     ),

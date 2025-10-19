@@ -1,42 +1,90 @@
+// [ИСПРАВЛЕННЫЙ ФАЙЛ]
+// photostudio_app/lib/widgets/order_card.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart'; // <-- 1. Добавлен импорт для даты
 import '../models/order_model.dart';
 
 class OrderCard extends StatelessWidget {
   final Order order;
+  // --- 2. Добавлены параметры для имен ---
+  // (Они нужны, т.к. в order только ID)
+  final String? clientName;
+  final String? photographerName;
+  final String userRole; // 'client', 'admin', 'photographer'
 
-  OrderCard({required this.order});
+  const OrderCard({
+    super.key,
+    required this.order,
+    required this.userRole,
+    this.clientName,
+    this.photographerName,
+  });
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'new':
-        return Colors.blue;
-      case 'assigned':
-        return Colors.orange;
+  // --- 3. "Четкий" чип статуса ---
+  Widget _buildStatusChip(BuildContext context, String status) {
+    Color chipColor;
+    Color textColor = Colors.white;
+
+    switch (status.toLowerCase()) {
+      case 'pending':
+        chipColor = Colors.orangeAccent;
+        break;
+      case 'confirmed':
+        chipColor = Colors.blueAccent;
+        break;
       case 'in_progress':
-        return Colors.purple;
+        chipColor = Colors.purpleAccent;
+        break;
       case 'completed':
-        return Colors.green;
+        chipColor = Colors.green;
+        break;
+      case 'cancelled':
+        chipColor = Colors.redAccent;
+        break;
       default:
-        return Colors.grey;
+        chipColor = Colors.grey;
+        textColor = Colors.black;
     }
+
+    return Chip(
+      label: Text(
+        status.toUpperCase(),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
+      ),
+      backgroundColor: chipColor,
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 0),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+      visualDensity: VisualDensity.compact,
+    );
   }
 
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'new':
-        return 'Новый';
-      case 'assigned':
-        return 'Назначен';
-      case 'in_progress':
-        return 'В работе';
-      case 'completed':
-        return 'Завершён';
-      case 'archived':
-        return 'Архив';
-      default:
-        return status;
-    }
+  // --- 4. "Четкая" строка-помощник ---
+  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 18,
+          color: Theme.of(context).textTheme.bodyMedium?.color,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontSize: 15),
+          ),
+        ),
+      ],
+    );
   }
 
   void _copyToClipboard(BuildContext context, String text) {
@@ -51,97 +99,89 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // --- 5. "Четкая" карточка ---
     return Card(
-      elevation: 3,
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      // Использует стиль из AppTheme
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.0),
         onTap: () {
+          // --- 6. "Четкий" AlertDialog ---
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text(order.service),
+              title: Text(order.service, style: theme.textTheme.titleLarge),
               content: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildInfoRow(Icons.location_on, 'Место', order.location),
-                    SizedBox(height: 8),
+                    // Используем _buildInfoRow для чистоты
+                    if (userRole != 'client' && clientName != null)
+                      _buildInfoRow(context, Icons.person_outline, clientName!),
+                    if (userRole != 'photographer' && photographerName != null)
+                      _buildInfoRow(
+                        context,
+                        Icons.camera_alt_outlined,
+                        photographerName!,
+                      ),
+
+                    const SizedBox(height: 8),
                     _buildInfoRow(
-                      Icons.calendar_today,
-                      'Дата',
-                      order.date.toString().split(' ')[0],
+                      context,
+                      Icons.location_on_outlined,
+                      order.location,
                     ),
-                    SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     _buildInfoRow(
-                      Icons.attach_money,
-                      'Цена',
+                      context,
+                      Icons.calendar_today_outlined,
+                      DateFormat('d MMMM y, HH:mm', 'ru_RU').format(order.date),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      context,
+                      Icons.monetization_on_outlined,
                       '${order.price} ₸',
                     ),
-                    SizedBox(height: 8),
-                    _buildInfoRow(
-                      Icons.info_outline,
-                      'Статус',
-                      _getStatusText(order.status),
-                    ),
                     if (order.comment != null && order.comment!.isNotEmpty) ...[
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       _buildInfoRow(
-                        Icons.comment,
-                        'Комментарий',
+                        context,
+                        Icons.comment_outlined,
                         order.comment!,
                       ),
                     ],
                     if (order.result != null && order.result!.isNotEmpty) ...[
-                      SizedBox(height: 16),
-                      Divider(),
-                      SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.photo_library,
-                            size: 20,
-                            color: Colors.green,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Результат работы',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Результат работы',
+                        style: theme.textTheme.titleMedium,
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Container(
-                        padding: EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.green[50],
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.green),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SelectableText(
                               order.result!,
-                              style: TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 14),
                             ),
-                            SizedBox(height: 8),
-                            ElevatedButton.icon(
+                            const SizedBox(height: 8),
+                            // Кнопка использует стиль темы
+                            TextButton.icon(
                               onPressed: () =>
                                   _copyToClipboard(context, order.result!),
-                              icon: Icon(Icons.copy, size: 16),
-                              label: Text('Скопировать ссылку'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
+                              icon: const Icon(Icons.copy, size: 16),
+                              label: const Text('Скопировать ссылку'),
                             ),
                           ],
                         ),
@@ -170,115 +210,53 @@ class OrderCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       order.service,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(order.status).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _getStatusColor(order.status)),
-                    ),
-                    child: Text(
-                      _getStatusText(order.status),
-                      style: TextStyle(
-                        color: _getStatusColor(order.status),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
+                  _buildStatusChip(context, order.status),
                 ],
               ),
-              SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
-                  SizedBox(width: 4),
-                  Text(
-                    order.location,
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                ],
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+
+              // --- 7. "Четкий" блок информации ---
+              _buildInfoRow(
+                context,
+                Icons.calendar_today_outlined,
+                DateFormat('d MMMM y, HH:mm', 'ru_RU').format(order.date),
               ),
-              SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                  SizedBox(width: 4),
-                  Text(
-                    order.date.toString().split(' ')[0],
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                ],
+              const SizedBox(height: 8),
+              _buildInfoRow(
+                context,
+                Icons.location_on_outlined,
+                order.location,
               ),
-              SizedBox(height: 8),
-              Text(
-                '${order.price} ₸',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green[700],
+              const SizedBox(height: 8),
+
+              // Показываем фотографа (если он есть)
+              if (photographerName != null) ...[
+                _buildInfoRow(
+                  context,
+                  Icons.camera_alt_outlined,
+                  photographerName!,
                 ),
-              ),
+                const SizedBox(height: 8),
+              ],
+
+              // Показываем результат (если он есть)
               if (order.status == 'completed' && order.result != null) ...[
-                SizedBox(height: 8),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.green[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.check_circle, size: 16, color: Colors.green),
-                      SizedBox(width: 4),
-                      Text(
-                        'Результат доступен',
-                        style: TextStyle(
-                          color: Colors.green[700],
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+                _buildInfoRow(
+                  context,
+                  Icons.check_circle_outline_rounded,
+                  'Результат доступен',
                 ),
               ],
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
-        SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-              Text(
-                value,
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

@@ -24,10 +24,17 @@ class AuthService {
     String email,
     String password,
     String role,
+    String phone,
   ) async {
     await _api.post(
       '/auth/register',
-      data: {'name': name, 'email': email, 'password': password, 'role': role},
+      data: {
+        'name': name,
+        'email': email,
+        'password': password,
+        'role': role,
+        'phone': phone,
+      },
     );
   }
 

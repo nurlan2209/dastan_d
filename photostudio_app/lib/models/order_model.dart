@@ -10,6 +10,11 @@ class Order {
   final String? result;
   final String? comment;
 
+  // Поля, которые "подгружаются" с бэкенда через .populate()
+  final String? clientName;
+  final String? photographerName;
+  final String? clientPhone;
+
   Order({
     required this.id,
     required this.clientId,
@@ -21,40 +26,50 @@ class Order {
     required this.price,
     this.result,
     this.comment,
+    this.clientName,
+    this.photographerName,
+    this.clientPhone,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    // Функция-помощник для безопасного извлечения ID
+    String? extractId(dynamic field) {
+      if (field == null) return null;
+      if (field is String) return field;
+      if (field is Map) return field['_id'];
+      return null;
+    }
+
+    // Функция-помощник для безопасного извлечения Имени
+    String? extractName(dynamic field) {
+      if (field == null) return null;
+      if (field is Map) return field['name'];
+      return null;
+    }
+
+    // Функция-помощник для безопасного извлечения Телефона
+    String? extractPhone(dynamic field) {
+      if (field == null) return null;
+      if (field is Map) return field['phone'];
+      return null;
+    }
+
     return Order(
       id: json['_id'],
-      clientId: json['clientId'] is String
-          ? json['clientId']
-          : json['clientId']['_id'],
-      photographerId: json['photographerId'] == null
-          ? null
-          : (json['photographerId'] is String
-                ? json['photographerId']
-                : json['photographerId']['_id']),
-      service: json['service'],
+      clientId: extractId(json['clientId'])!,
+      photographerId: extractId(json['photographerId']),
+      service: json['service'] ?? 'Услуга не указана',
       date: DateTime.parse(json['date']),
-      location: json['location'],
-      status: json['status'],
-      price: (json['price'] is int) ? json['price'].toDouble() : json['price'],
+      location: json['location'] ?? 'Место не указано',
+      status: json['status'] ?? 'pending',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
       result: json['result'],
       comment: json['comment'],
-    );
-  }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'clientId': clientId,
-      'photographerId': photographerId,
-      'service': service,
-      'date': date.toIso8601String(),
-      'location': location,
-      'status': status,
-      'price': price,
-      'result': result,
-      'comment': comment,
-    };
+      // Присваиваем "подгруженные" данные
+      clientName: extractName(json['clientId']),
+      photographerName: extractName(json['photographerId']),
+      clientPhone: extractPhone(json['clientId']),
+    );
   }
 }

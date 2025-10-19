@@ -16,11 +16,10 @@ exports.getOrders = async (req, res) => {
     if (req.user.role === "photographer") filter.photographerId = req.user.id;
     if (req.user.role === "client") filter.clientId = req.user.id;
     if (req.query.status) filter.status = req.query.status;
+    const orders = await Order.find(filter)
+      .populate("clientId", "name email phone") 
+      .populate("photographerId", "name email");
 
-    const orders = await Order.find(filter).populate(
-      "clientId photographerId",
-      "name email"
-    );
     res.json(orders);
   } catch (err) {
     res.status(500).json({ error: err.message });

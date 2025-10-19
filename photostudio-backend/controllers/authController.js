@@ -7,16 +7,43 @@ const {
 } = require("../utils/tokenUtils");
 
 exports.register = async (req, res) => {
+  const { name, email, password, role, phone } = req.body;
+
   try {
-    const { name, email, password, role } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashedPassword, role: role || 'client' });
-    res.status(201).json({ message: 'User created', userId: user._id });
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // --- ИСПРАВЛЕНИЕ ЗДЕСЬ ---
+    // Добавляем 'phone' при создании пользователя
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      phone, // <-- Эта строка была самой важной
+    });
+
+    // При успешной регистрации токен не нужен,
+    // пользователь должен будет войти сам.
+    res.status(201).json({
+      message: "User registered successfully",
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// Функция login остается без изменений
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -32,15 +59,27 @@ exports.login = async (req, res) => {
   }
 };
 
+// Функция refresh остается без изменений
 exports.refresh = async (req, res) => {
   try {
     const { refreshToken } = req.body;
     const decoded = verifyToken(refreshToken, true);
     const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
     const accessToken = generateAccessToken(user._id, user.role);
-    res.json({ accessToken });
+    res.json({ accessToken, role: user.role, userId: user._id });
   } catch (err) {
-    res.status(401).json({ error: "Invalid refresh token" });
+    res.status(403).json({ message: "Invalid refresh token" });
+  }
+};
+
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };

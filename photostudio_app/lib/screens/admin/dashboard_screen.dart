@@ -1,118 +1,122 @@
+// [ИСПРАВЛЕННЫЙ ФАЙЛ]
+// photostudio_app/lib/screens/admin/dashboard_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
 class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+
   Future<void> _logout(BuildContext context) async {
+    // Проверка mounted не нужна, т.к. BuildContext используется до await
     await context.read<AuthProvider>().logout();
+    // А вот здесь нужна, но pushReplacementNamed безопаснее
     Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
   Widget build(BuildContext context) {
-    final role = context.watch<AuthProvider>().role;
+    final theme = Theme.of(context);
+
+    // Список экранов для BottomNavBar (если вы решите его добавить)
+    // Я пока оставлю только Dashboard
+    final List<Widget> screens = [
+      _buildDashboardGrid(context), // Экран 0
+      // UsersScreen(),            // Экран 1
+      // ReportsScreen(),          // Экран 2
+    ];
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text(
-          'Админ панель',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.deepPurple,
-        elevation: 0,
+        title: const Text('Админ-панель'),
         actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text('Роль: $role', style: TextStyle(fontSize: 14)),
-              ),
-            ),
-          ),
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () => _logout(context),
           ),
         ],
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          children: [
-            _buildDashboardCard(
-              context,
-              'Все заказы',
-              Icons.assignment,
-              Colors.blue,
-              () => Navigator.pushNamed(context, '/admin/orders'),
-            ),
-            _buildDashboardCard(
-              context,
-              'Пользователи',
-              Icons.people,
-              Colors.green,
-              () => Navigator.pushNamed(context, '/admin/users'),
-            ),
-            _buildDashboardCard(
-              context,
-              'Отчёты',
-              Icons.analytics,
-              Colors.orange,
-              () => Navigator.pushNamed(context, '/admin/reports'),
-            ),
-          ],
-        ),
-      ),
+      body: _buildDashboardGrid(context),
+
+      // TODO: Вы можете легко добавить BottomNavBar здесь
+      // bottomNavigationBar: BottomNavigationBar(
+      //   currentIndex: 0,
+      //   onTap: (index) { /* ... */ },
+      //   items: const [
+      //     BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Главная'),
+      //     BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Юзеры'),
+      //     BottomNavigationBarItem(icon: Icon(Icons.analytics), label: 'Отчеты'),
+      //   ],
+      // ),
     );
   }
 
+  // Виджет сетки (бывший body)
+  Widget _buildDashboardGrid(BuildContext context) {
+    return GridView.count(
+      padding: const EdgeInsets.all(16.0),
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      children: [
+        _buildDashboardCard(
+          context,
+          'Все заказы',
+          Icons.assignment_outlined,
+          () => Navigator.pushNamed(context, '/admin/orders'),
+        ),
+        _buildDashboardCard(
+          context,
+          'Пользователи',
+          Icons.people_outline_rounded,
+          () => Navigator.pushNamed(context, '/admin/users'),
+        ),
+        _buildDashboardCard(
+          context,
+          'Отчёты',
+          Icons.analytics_outlined,
+          () => Navigator.pushNamed(context, '/admin/reports'),
+        ),
+        _buildDashboardCard(
+          context,
+          'Уведомления',
+          Icons.notifications_outlined,
+          () => Navigator.pushNamed(context, '/notifications'),
+        ),
+      ],
+    );
+  }
+
+  // "Четкая" карточка (БЕЗ ГРАДИЕНТОВ)
   Widget _buildDashboardCard(
     BuildContext context,
     String title,
     IconData icon,
-    Color color,
     VoidCallback onTap,
   ) {
+    final theme = Theme.of(context);
+
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2.0, // Из темы
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12.0), // Из темы
         onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [color.withOpacity(0.7), color],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 48,
+              color: theme.primaryColor, // Основной цвет темы
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 64, color: Colors.white),
-              SizedBox(height: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: theme.textTheme.titleLarge?.copyWith(fontSize: 18),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );

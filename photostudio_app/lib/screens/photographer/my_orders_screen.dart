@@ -1,32 +1,80 @@
+// [ИСПРАВЛЕННЫЙ ФАЙЛ]
+// photostudio_app/lib/screens/photographer/my_orders_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+// import 'package:photostudio_app/models/user_model.dart'; // <-- 1. УДАЛЕНО
+// import 'package:photostudio_app/services/api_service.dart'; // <-- 1. УДАЛЕНО
 import 'package:provider/provider.dart';
+import '../../models/order_model.dart'; // <-- Нужна для _buildInfoRow
 import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
 
 class PhotographerOrdersScreen extends StatefulWidget {
+  // 2. Добавлен const и key
+  const PhotographerOrdersScreen({super.key});
+
   @override
   _PhotographerOrdersScreenState createState() =>
       _PhotographerOrdersScreenState();
 }
 
 class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
+  // --- 3. УДАЛЕНА логика загрузки Users ---
+  // final ApiService _api = ApiService(); // <-- УДАЛЕНО
+  // Map<String, String> _userMap = {}; // <-- УДАЛЕНО
+  late Future<void> _loadDataFuture;
+
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<OrderProvider>().fetchOrders());
+    _loadDataFuture = _loadData();
   }
 
+  // --- 4. УПРОЩЕНА функция загрузки ---
+  Future<void> _loadData() async {
+    try {
+      if (!mounted) return;
+      // Просто загружаем заказы. Имена уже будут в них.
+      await context.read<OrderProvider>().fetchOrders();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка загрузки данных: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+  // --- Конец логики загрузки ---
+
   Future<void> _updateStatus(String orderId, String status) async {
-    await context.read<OrderProvider>().updateOrder(orderId, {
-      'status': status,
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Статус обновлён'), backgroundColor: Colors.green),
-    );
+    final orderProvider = context.read<OrderProvider>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      await orderProvider.updateOrder(orderId, {'status': status});
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Статус обновлён'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Ошибка: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
   }
 
   Future<void> _completeOrder(String orderId) async {
     final _resultController = TextEditingController();
+    final theme = Theme.of(context);
 
     showDialog(
       context: context,
@@ -38,25 +86,17 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
           children: [
             Text(
               'Добавьте ссылку на результат работы:',
-              style: TextStyle(fontSize: 14),
+              style: theme.textTheme.bodyMedium,
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 16),
             TextField(
               controller: _resultController,
               decoration: InputDecoration(
                 labelText: 'Ссылка на Google Drive / Яндекс.Диск',
                 hintText: 'https://drive.google.com/...',
                 prefixIcon: Icon(Icons.link),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
               maxLines: 3,
-            ),
-            SizedBox(height: 8),
-            Text(
-              '💡 Можно вставить несколько ссылок',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -74,12 +114,13 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
 
               if (resultText.isEmpty) {
                 scaffoldMessenger.showSnackBar(
-
-                  SnackBar(content: Text('Добавьте ссылку на результат')),
+                  SnackBar(
+                    content: Text('Добавьте ссылку на результат'),
+                    backgroundColor: theme.colorScheme.error,
+                  ),
                 );
                 return;
               }
-
               nav.pop();
 
               try {
@@ -87,17 +128,17 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
                   'status': 'completed',
                   'result': _resultController.text,
                 });
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text('Заказ завершён!'),
                     backgroundColor: Colors.green,
                   ),
                 );
               } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text('Ошибка: $e'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: theme.colorScheme.error,
                   ),
                 );
               }
@@ -112,275 +153,237 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
 
   Future<void> _logout() async {
     await context.read<AuthProvider>().logout();
+    if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/login');
   }
 
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'new':
-        return Colors.blue;
-      case 'assigned':
-        return Colors.orange;
+  Widget _buildStatusChip(BuildContext context, String status) {
+    Color chipColor;
+    Color textColor = Colors.white;
+
+    switch (status.toLowerCase()) {
+      case 'pending':
+        chipColor = Colors.orangeAccent;
+        break;
+      case 'confirmed':
+        chipColor = Colors.blueAccent;
+        break;
       case 'in_progress':
-        return Colors.purple;
+        chipColor = Colors.purpleAccent;
+        break;
       case 'completed':
-        return Colors.green;
+        chipColor = Colors.green;
+        break;
+      case 'cancelled':
+        chipColor = Colors.redAccent;
+        break;
       default:
-        return Colors.grey;
+        chipColor = Colors.grey;
+        textColor = Colors.black;
     }
+
+    return Chip(
+      label: Text(
+        status.toUpperCase(),
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: textColor,
+          fontWeight: FontWeight.bold,
+          fontSize: 10,
+        ),
+      ),
+      backgroundColor: chipColor,
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 0),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+      visualDensity: VisualDensity.compact,
+    );
   }
 
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'new':
-        return 'Новый';
-      case 'assigned':
-        return 'Назначен';
-      case 'in_progress':
-        return 'В работе';
-      case 'completed':
-        return 'Завершён';
-      case 'archived':
-        return 'Архив';
-      default:
-        return status;
-    }
+  Widget _buildInfoRow(BuildContext context, IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: Theme.of(context).textTheme.bodyMedium?.color,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodyMedium,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final role = context.watch<AuthProvider>().role;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: Text(
-          'Мои заказы',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.purple,
-        elevation: 0,
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Center(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text('Роль: $role', style: TextStyle(fontSize: 14)),
-              ),
-            ),
-          ),
-          IconButton(icon: Icon(Icons.logout), onPressed: _logout),
-        ],
+        title: Text('Мои заказы'),
+        actions: [IconButton(icon: Icon(Icons.logout), onPressed: _logout)],
       ),
-      body: Consumer<OrderProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
+      body: FutureBuilder(
+        future: _loadDataFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
-          if (provider.orders.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.assignment, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'Нет назначенных заказов',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: () => provider.fetchOrders(),
-            child: ListView.builder(
-              padding: EdgeInsets.all(16),
-              itemCount: provider.orders.length,
-              itemBuilder: (context, index) {
-                final order = provider.orders[index];
-                return Card(
-                  elevation: 3,
-                  margin: EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                order.service,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(
-                                  order.status,
-                                ).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: _getStatusColor(order.status),
-                                ),
-                              ),
-                              child: Text(
-                                _getStatusText(order.status),
-                                style: TextStyle(
-                                  color: _getStatusColor(order.status),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(width: 4),
-                            Expanded(child: Text(order.location)),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 16,
-                              color: Colors.grey[600],
-                            ),
-                            SizedBox(width: 4),
-                            Text(order.date.toString().split(' ')[0]),
-                          ],
-                        ),
-                        if (order.comment != null &&
-                            order.comment!.isNotEmpty) ...[
-                          SizedBox(height: 8),
-                          Container(
-                            padding: EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[50],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(
-                                  Icons.comment,
-                                  size: 16,
-                                  color: Colors.blue,
-                                ),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    order.comment!,
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        SizedBox(height: 8),
-                        Text(
-                          '${order.price} ₸',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green[700],
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        if (order.status == 'assigned') ...[
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: () =>
-                                  _updateStatus(order.id, 'in_progress'),
-                              icon: Icon(Icons.play_arrow),
-                              label: Text('Начать работу'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.purple,
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                        if (order.status == 'in_progress') ...[
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: () => _completeOrder(order.id),
-                              icon: Icon(Icons.check_circle),
-                              label: Text('Завершить и отправить результат'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                padding: EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                        if (order.status == 'completed' &&
-                            order.result != null) ...[
-                          Container(
-                            padding: EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.green[50],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.green),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.check_circle, color: Colors.green),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Результат отправлен',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green[700],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
+
+          return Consumer<OrderProvider>(
+            builder: (context, provider, child) {
+              if (provider.isLoading && provider.orders.isEmpty) {
+                return Center(child: CircularProgressIndicator());
+              }
+              if (provider.orders.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inbox, size: 64, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(
+                        'Нет назначенных заказов',
+                        style: theme.textTheme.titleLarge,
+                      ),
+                    ],
                   ),
                 );
-              },
-            ),
+              }
+
+              return RefreshIndicator(
+                onRefresh: _loadData,
+                child: ListView.builder(
+                  padding: EdgeInsets.all(8.0),
+                  itemCount: provider.orders.length,
+                  itemBuilder: (context, index) {
+                    final order = provider.orders[index];
+
+                    // --- 5. ИСПРАВЛЕНИЕ: Берем имя из модели ---
+                    final clientName = order.clientName ?? 'Неизвестный клиент';
+
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    order.service,
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                      fontSize: 18,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                _buildStatusChip(context, order.status),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            const Divider(height: 1),
+                            const SizedBox(height: 12),
+
+                            _buildInfoRow(
+                              context,
+                              Icons.person_outline,
+                              'Клиент: $clientName',
+                            ),
+                            const SizedBox(height: 8),
+                            _buildInfoRow(
+                              context,
+                              Icons.calendar_today_outlined,
+                              DateFormat(
+                                'd MMMM y, HH:mm',
+                                'ru_RU',
+                              ).format(order.date),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildInfoRow(
+                              context,
+                              Icons.location_on_outlined,
+                              order.location,
+                            ),
+
+                            if (order.comment != null &&
+                                order.comment!.isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(12.0),
+                                decoration: BoxDecoration(
+                                  color: theme.primaryColor.withAlpha(
+                                    (255 * 0.05).round(),
+                                  ), // Linter fix
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: _buildInfoRow(
+                                  context,
+                                  Icons.comment_outlined,
+                                  order.comment!,
+                                ),
+                              ),
+                            ],
+
+                            const SizedBox(height: 16),
+
+                            if (order.status == 'confirmed') ...[
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () =>
+                                      _updateStatus(order.id, 'in_progress'),
+                                  icon: Icon(Icons.play_arrow_rounded),
+                                  label: Text('Начать работу'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        theme.colorScheme.secondary,
+                                    foregroundColor:
+                                        theme.colorScheme.onSecondary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (order.status == 'in_progress') ...[
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _completeOrder(order.id),
+                                  icon: Icon(
+                                    Icons.check_circle_outline_rounded,
+                                  ),
+                                  label: Text(
+                                    'Завершить и отправить результат',
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            if (order.status == 'completed' &&
+                                order.result != null) ...[
+                              _buildInfoRow(
+                                context,
+                                Icons.check_circle_rounded,
+                                'Результат отправлен',
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           );
         },
       ),

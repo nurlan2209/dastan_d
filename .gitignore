@@ -1,0 +1,17 @@
+# Игнорируем Node.js зависимости
+backend/node_modules/
+
+# Игнорируем временные файлы Flutter
+flutter_export_environment.sh
+*.flutter-plugins
+*.flutter-plugins-dependencies
+.dart_tool/
+.build/
+.packages
+pubspec.lock
+
+# Общие системные файлы
+.DS_Store
+.idea/
+.vscode/
+*.log

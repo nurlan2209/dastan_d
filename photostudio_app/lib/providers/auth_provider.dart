@@ -30,8 +30,9 @@ class AuthProvider with ChangeNotifier {
     String email,
     String password,
     String role,
+    String phone, 
   ) async {
-    await _authService.register(name, email, password, role);
+    await _authService.register(name, email, password, role, phone);
   }
 
   Future<void> logout() async {
