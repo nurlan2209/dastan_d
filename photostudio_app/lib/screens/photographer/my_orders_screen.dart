@@ -240,22 +240,26 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Color(0xFFF9FAFB),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF2563EB),
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Мои заказы',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white)),
             Text('Фотограф',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                style: TextStyle(
+                    fontSize: 14, color: Colors.white.withOpacity(0.9))),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_outlined),
+            icon: Icon(Icons.logout_outlined, color: Colors.white),
             onPressed: () => context.read<AuthProvider>().logout(),
             tooltip: 'Выйти',
           ),

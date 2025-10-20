@@ -12,11 +12,21 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text('Панель Администратора'),
+        backgroundColor: Color(0xFF2563EB),
+        elevation: 0,
+        title: Text(
+          'Панель Администратора',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout_outlined),
+            icon: Icon(Icons.logout_outlined, color: Colors.white),
             onPressed: () => _logout(context),
             tooltip: 'Выйти',
           ),
