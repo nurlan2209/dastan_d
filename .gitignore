@@ -1,5 +1,5 @@
 # Игнорируем Node.js зависимости
-backend/node_modules/
+**/node_modules/
 
 # Игнорируем временные файлы Flutter
 flutter_export_environment.sh
@@ -15,7 +15,3 @@ pubspec.lock
 .idea/
 .vscode/
 *.log
-
-
-frontend/node_modules/
-backend/node_modules/
