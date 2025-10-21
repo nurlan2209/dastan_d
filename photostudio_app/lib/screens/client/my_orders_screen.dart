@@ -1,7 +1,8 @@
+// photostudio_app/lib/screens/client/my_orders_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -39,19 +40,52 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
     }
   }
 
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Выход'),
+        content: Text('Вы уверены, что хотите выйти?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFFEF4444),
+            ),
+            child: Text('Выйти'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await context.read<AuthProvider>().logout();
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/login',
+          (route) => false,
+        );
+      }
+    }
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
       case 'confirmed':
-        return Color(0xFFFBBF24); // Желтый
+        return Color(0xFFFBBF24);
       case 'in_progress':
-        return Color(0xFF3B82F6); // Синий
+        return Color(0xFF3B82F6);
       case 'completed':
-        return Color(0xFF10B981); // Зеленый
+        return Color(0xFF10B981);
       case 'cancelled':
-        return Color(0xFFEF4444); // Красный
+        return Color(0xFFEF4444);
       default:
-        return Color(0xFF6B7280); // Серый
+        return Color(0xFF6B7280);
     }
   }
 
@@ -150,7 +184,6 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final user = context.watch<AuthProvider>().user;
 
     return Scaffold(
       backgroundColor: Color(0xFFF9FAFB),
@@ -173,7 +206,7 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.logout_outlined, color: Colors.white),
-            onPressed: () => context.read<AuthProvider>().logout(),
+            onPressed: () => _logout(context),
             tooltip: 'Выйти',
           ),
         ],
@@ -295,7 +328,6 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow(Icons.person_outline, 'Вы\n+7 (999) 123-45-67'),
             _buildInfoRow(Icons.camera_alt_outlined, photographerName),
             _buildInfoRow(
               Icons.calendar_today_outlined,

@@ -1,3 +1,5 @@
+// photostudio_app/lib/providers/auth_provider.dart
+
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -30,6 +32,7 @@ class AuthProvider with ChangeNotifier {
 
       print('Token received: $_token');
       print('Role: $_role');
+      print('UserId: $_userId');
 
       // Получаем данные пользователя
       try {
@@ -43,6 +46,7 @@ class AuthProvider with ChangeNotifier {
 
         if (userResponse.statusCode == 200) {
           _user = User.fromJson(json.decode(userResponse.body));
+          print('User loaded: ${_user?.name}');
         }
       } catch (e) {
         print('Error fetching user data: $e');
@@ -55,6 +59,7 @@ class AuthProvider with ChangeNotifier {
         );
       }
 
+      // Сохраняем данные
       final prefs = await SharedPreferences.getInstance();
       final userData = json.encode({
         'token': _token,
@@ -64,7 +69,12 @@ class AuthProvider with ChangeNotifier {
       });
       await prefs.setString('userData', userData);
 
+      print('Data saved to SharedPreferences');
+
+      // ВАЖНО: уведомляем слушателей об изменении
       notifyListeners();
+
+      print('Login completed successfully');
     } catch (e) {
       print('Login error in provider: $e');
       rethrow;
@@ -86,20 +96,31 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<bool> tryAutoLogin() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!prefs.containsKey('userData')) {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (!prefs.containsKey('userData')) {
+        print('No saved user data found');
+        return false;
+      }
+
+      final extractedUserData =
+          json.decode(prefs.getString('userData')!) as Map<String, dynamic>;
+
+      _token = extractedUserData['token'];
+      _userId = extractedUserData['userId'];
+      _role = extractedUserData['role'];
+
+      if (extractedUserData['user'] != null) {
+        _user = User.fromJson(extractedUserData['user']);
+      }
+
+      print('Auto-login successful. Role: $_role');
+      notifyListeners();
+      return true;
+    } catch (e) {
+      print('Auto-login error: $e');
       return false;
     }
-    final extractedUserData =
-        json.decode(prefs.getString('userData')!) as Map<String, dynamic>;
-    _token = extractedUserData['token'];
-    _userId = extractedUserData['userId'];
-    _role = extractedUserData['role'];
-    if (extractedUserData['user'] != null) {
-      _user = User.fromJson(extractedUserData['user']);
-    }
-    notifyListeners();
-    return true;
   }
 
   Future<void> logout() async {

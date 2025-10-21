@@ -1,8 +1,13 @@
+// photostudio_app/lib/screens/admin/orders_screen.dart
+// С рабочей кнопкой назначения фотографа
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/order_model.dart';
+import '../../models/user_model.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/user_provider.dart';
 
 class AdminOrdersScreen extends StatefulWidget {
   const AdminOrdersScreen({super.key});
@@ -24,11 +29,12 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
   Future<void> _loadData() async {
     try {
       await context.read<OrderProvider>().fetchOrders();
+      await context.read<UserProvider>().fetchUsers();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ошибка загрузки заказов: $e'),
+            content: Text('Ошибка загрузки: $e'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -50,10 +56,6 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
         child: Container(
           constraints: BoxConstraints(maxWidth: 500, maxHeight: 700),
           padding: const EdgeInsets.all(24.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,9 +63,12 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Детали заказа #ORD001',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  Expanded(
+                    child: Text(
+                      'Заказ: ${order.service}',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                    ),
                   ),
                   IconButton(
                     icon: Icon(Icons.close),
@@ -89,53 +94,31 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
               _buildDetailRow(
                 Icons.calendar_today_outlined,
                 'Дата съёмки',
-                DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),
+                DateFormat('yyyy-MM-dd HH:mm', 'ru_RU').format(order.date),
               ),
               _buildDetailRow(
                   Icons.location_on_outlined, 'Локация', order.location),
               _buildDetailRow(Icons.credit_card_outlined, 'Цена',
-                  '${order.price.toStringAsFixed(0)} ₽'),
+                  '${order.price.toStringAsFixed(0)} ₸'),
+
+              if (order.comment != null && order.comment!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _buildDetailRow(
+                    Icons.comment_outlined, 'Комментарий', order.comment!),
+              ],
+
               const SizedBox(height: 24),
-              if (order.status == 'pending') ...[
+
+              // Назначение фотографа (только если не назначен)
+              if (order.photographerId == null || order.status == 'new') ...[
+                const Divider(),
+                const SizedBox(height: 16),
                 Text(
                   'Назначить фотографа',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    hintText: 'Выберите фотографа',
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  items: [
-                    DropdownMenuItem(value: '1', child: Text('Анна Петрова')),
-                    DropdownMenuItem(value: '2', child: Text('Иван Сидоров')),
-                  ],
-                  onChanged: (value) {},
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content:
-                                Text('Функционал назначения в разработке')),
-                      );
-                    },
-                    child: Text('Завершить заказ'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text('Назначить фотографа'),
-                  ),
-                ),
+                const SizedBox(height: 12),
+                _AssignPhotographerSection(order: order),
               ],
             ],
           ),
@@ -175,12 +158,14 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'new':
       case 'pending':
         return Colors.yellow.shade700;
       case 'confirmed':
-        return Colors.yellow.shade700;
-      case 'in_progress':
+      case 'assigned':
         return Colors.blue.shade600;
+      case 'in_progress':
+        return Colors.purple.shade600;
       case 'completed':
         return Colors.green.shade600;
       case 'cancelled':
@@ -195,13 +180,15 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     String statusText;
 
     switch (status.toLowerCase()) {
+      case 'new':
       case 'pending':
         chipColor = const Color(0xFFFEF3C7);
-        statusText = 'В ожидании';
+        statusText = 'Новый';
         break;
       case 'confirmed':
+      case 'assigned':
         chipColor = const Color(0xFFDBEAFE);
-        statusText = 'Подтверждён';
+        statusText = 'Назначен';
         break;
       case 'in_progress':
         chipColor = const Color(0xFFDBEAFE);
@@ -222,11 +209,11 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
     return Chip(
       label: Text(statusText),
-      labelStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: const Color(0xFF1F2937),
-            fontWeight: FontWeight.w500,
-            fontSize: 12,
-          ),
+      labelStyle: TextStyle(
+        color: const Color(0xFF1F2937),
+        fontWeight: FontWeight.w500,
+        fontSize: 12,
+      ),
       backgroundColor: chipColor,
       side: BorderSide.none,
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0),
@@ -255,11 +242,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
   Widget _buildFilterChips() {
     final filters = {
       'all': 'Все',
-      'pending': 'В ожидании',
-      'confirmed': 'Подтверждён',
+      'new': 'Новые',
+      'assigned': 'Назначен',
       'in_progress': 'В работе',
       'completed': 'Завершён',
-      'cancelled': 'Отменён',
     };
 
     return SingleChildScrollView(
@@ -285,8 +271,6 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       backgroundColor: Color(0xFFF9FAFB),
       appBar: AppBar(
@@ -317,6 +301,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
             builder: (context, provider, child) {
               final filteredOrders = provider.orders.where((order) {
                 if (_currentStatusFilter == 'all') return true;
+                if (_currentStatusFilter == 'new') {
+                  return order.status == 'new' || order.status == 'pending';
+                }
                 return order.status == _currentStatusFilter;
               }).toList();
 
@@ -344,9 +331,15 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   if (filteredOrders.isEmpty)
                     Expanded(
                       child: Center(
-                        child: Text(
-                          'Заказы с таким статусом не найдены.',
-                          style: theme.textTheme.titleMedium,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.inbox_outlined,
+                                size: 64, color: Colors.grey),
+                            const SizedBox(height: 16),
+                            Text('Заказы не найдены',
+                                style: Theme.of(context).textTheme.titleLarge),
+                          ],
                         ),
                       ),
                     )
@@ -412,11 +405,6 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   _buildStatusChip(context, order.status),
                 ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                'ID: ${order.id.substring(0, 8)}...',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-              ),
               const SizedBox(height: 12),
               _buildInfoRow(Icons.person_outline, 'Клиент: $clientName'),
               _buildInfoRow(
@@ -430,6 +418,129 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+// Секция назначения фотографа
+class _AssignPhotographerSection extends StatefulWidget {
+  final Order order;
+
+  const _AssignPhotographerSection({required this.order});
+
+  @override
+  State<_AssignPhotographerSection> createState() =>
+      _AssignPhotographerSectionState();
+}
+
+class _AssignPhotographerSectionState
+    extends State<_AssignPhotographerSection> {
+  String? _selectedPhotographerId;
+  bool _isAssigning = false;
+
+  Future<void> _assignPhotographer() async {
+    if (_selectedPhotographerId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Выберите фотографа')),
+      );
+      return;
+    }
+
+    setState(() => _isAssigning = true);
+
+    try {
+      await context.read<OrderProvider>().updateOrder(
+        widget.order.id,
+        {
+          'photographerId': _selectedPhotographerId,
+          'status': 'assigned',
+        },
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // Закрыть диалог
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Фотограф назначен!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ошибка: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isAssigning = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        final photographers = userProvider.users
+            .where((user) => user.role == 'photographer')
+            .toList();
+
+        if (photographers.isEmpty) {
+          return Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Color(0xFFFEF3C7),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B)),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Нет доступных фотографов. Создайте аккаунт фотографа.',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: 'Выберите фотографа',
+                prefixIcon: Icon(Icons.camera_alt_outlined),
+              ),
+              value: _selectedPhotographerId,
+              items: photographers.map((photographer) {
+                return DropdownMenuItem(
+                  value: photographer.id,
+                  child: Text(photographer.name),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() => _selectedPhotographerId = value);
+              },
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: _isAssigning
+                  ? Center(child: CircularProgressIndicator())
+                  : ElevatedButton.icon(
+                      onPressed: _assignPhotographer,
+                      icon: Icon(Icons.check_circle_outline),
+                      label: Text('Назначить фотографа'),
+                    ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -1,3 +1,5 @@
+// photostudio_app/lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +11,7 @@ import 'providers/report_provider.dart';
 import 'providers/schedule_provider.dart';
 
 import 'screens/auth_wrapper.dart';
+import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 import 'screens/client/my_orders_screen.dart';
@@ -18,6 +21,7 @@ import 'screens/admin/dashboard_screen.dart';
 import 'screens/admin/users_screen.dart' as users;
 import 'screens/admin/orders_screen.dart' as orders;
 import 'screens/admin/reports_screen.dart' as reports;
+import 'screens/admin/create_photographer_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -82,6 +86,7 @@ class MyApp extends StatelessWidget {
         locale: const Locale('ru'),
         home: const AuthWrapper(),
         routes: {
+          '/onboarding': (context) => const OnboardingScreen(),
           '/login': (context) => const LoginScreen(),
           '/register': (context) => const RegisterScreen(),
           '/home': (context) => const MyOrdersScreen(),
@@ -91,6 +96,8 @@ class MyApp extends StatelessWidget {
           '/admin/users': (context) => const users.AdminUsersScreen(),
           '/admin/orders': (context) => const orders.AdminOrdersScreen(),
           '/admin/reports': (context) => const reports.AdminReportsScreen(),
+          '/admin/create-photographer': (context) =>
+              const CreatePhotographerScreen(),
         },
       ),
     );
