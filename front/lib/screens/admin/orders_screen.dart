@@ -1,6 +1,3 @@
-// photostudio_app/lib/screens/admin/orders_screen.dart
-// С рабочей кнопкой назначения фотографа
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -54,12 +51,16 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         backgroundColor: Colors.white,
         child: Container(
-          constraints: BoxConstraints(maxWidth: 500, maxHeight: 700),
+          constraints: BoxConstraints(
+            maxWidth: 500,
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header with title and close button
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -76,7 +77,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -86,40 +87,59 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   _buildStatusChip(context, order.status),
                 ],
               ),
-              const SizedBox(height: 20),
-              _buildDetailRow(Icons.person_outline, 'Клиент', clientName),
-              _buildDetailRow(Icons.phone_outlined, 'Телефон', clientPhone),
-              _buildDetailRow(
-                  Icons.camera_alt_outlined, 'Фотограф', photographerName),
-              _buildDetailRow(
-                Icons.calendar_today_outlined,
-                'Дата съёмки',
-                DateFormat('yyyy-MM-dd HH:mm', 'ru_RU').format(order.date),
-              ),
-              _buildDetailRow(
-                  Icons.location_on_outlined, 'Локация', order.location),
-              _buildDetailRow(Icons.credit_card_outlined, 'Цена',
-                  '${order.price.toStringAsFixed(0)} ₸'),
+              const SizedBox(height: 16),
+              const Divider(),
 
-              if (order.comment != null && order.comment!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _buildDetailRow(
-                    Icons.comment_outlined, 'Комментарий', order.comment!),
-              ],
+              // FIXED: Wrap the content in Expanded + SingleChildScrollView
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 8),
+                      _buildDetailRow(
+                          Icons.person_outline, 'Клиент', clientName),
+                      _buildDetailRow(
+                          Icons.phone_outlined, 'Телефон', clientPhone),
+                      _buildDetailRow(Icons.camera_alt_outlined, 'Фотограф',
+                          photographerName),
+                      _buildDetailRow(
+                        Icons.calendar_today_outlined,
+                        'Дата съёмки',
+                        DateFormat('yyyy-MM-dd HH:mm', 'ru_RU')
+                            .format(order.date),
+                      ),
+                      _buildDetailRow(Icons.location_on_outlined, 'Локация',
+                          order.location),
+                      _buildDetailRow(Icons.credit_card_outlined, 'Цена',
+                          '${order.price.toStringAsFixed(0)} ₸'),
 
-              const SizedBox(height: 24),
+                      if (order.comment != null &&
+                          order.comment!.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _buildDetailRow(Icons.comment_outlined, 'Комментарий',
+                            order.comment!),
+                      ],
 
-              // Назначение фотографа (только если не назначен)
-              if (order.photographerId == null || order.status == 'new') ...[
-                const Divider(),
-                const SizedBox(height: 16),
-                Text(
-                  'Назначить фотографа',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      // Назначение фотографа (только если не назначен)
+                      if (order.photographerId == null ||
+                          order.status == 'new') ...[
+                        const SizedBox(height: 16),
+                        const Divider(),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Назначить фотографа',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 12),
+                        _AssignPhotographerSection(order: order),
+                      ],
+                      const SizedBox(height: 16), // Extra padding at bottom
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                _AssignPhotographerSection(order: order),
-              ],
+              ),
             ],
           ),
         ),
