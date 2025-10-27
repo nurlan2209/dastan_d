@@ -28,7 +28,7 @@ class ReportService {
   Future<void> downloadReport(String format) async {
     if (_token == null) throw Exception('Not authenticated');
 
-    final url = '${ApiConfig.baseUrl}/reports/orders/$format?token=$_token';
+    final url = '${ApiConfig.baseUrl}/reports/export/$format';
     final uri = Uri.parse(url);
 
     if (await canLaunchUrl(uri)) {
