@@ -19,7 +19,7 @@ public class RegisterRequest {
     @Size(min = 6, message = "Пароль должен содержать минимум 6 символов")
     private String password;
 
-    private User.UserRole role = User.UserRole.CLIENT;
+    private String role = "client";
 
     private String phone;
 
@@ -27,7 +27,7 @@ public class RegisterRequest {
     public RegisterRequest() {
     }
 
-    public RegisterRequest(String name, String email, String password, User.UserRole role, String phone) {
+    public RegisterRequest(String name, String email, String password, String role, String phone) {
         this.name = name;
         this.email = email;
         this.password = password;
@@ -60,11 +60,11 @@ public class RegisterRequest {
         this.password = password;
     }
 
-    public User.UserRole getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(User.UserRole role) {
+    public void setRole(String role) {
         this.role = role;
     }
 

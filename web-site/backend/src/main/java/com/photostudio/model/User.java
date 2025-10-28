@@ -29,7 +29,7 @@ public class User {
     private String password;
 
     @NotNull(message = "Роль обязательна")
-    private UserRole role;
+    private String role;
 
     private String phone;
 
@@ -44,16 +44,35 @@ public class User {
     private LocalDateTime updatedAt;
 
     public enum UserRole {
-        CLIENT,
-        PHOTOGRAPHER,
-        ADMIN
+        CLIENT("client"),
+        PHOTOGRAPHER("photographer"),
+        ADMIN("admin");
+
+        private final String value;
+
+        UserRole(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public static UserRole fromValue(String value) {
+            for (UserRole role : UserRole.values()) {
+                if (role.value.equalsIgnoreCase(value)) {
+                    return role;
+                }
+            }
+            throw new IllegalArgumentException("Unknown role: " + value);
+        }
     }
 
     // Constructors
     public User() {
     }
 
-    public User(String id, String name, String email, String password, UserRole role,
+    public User(String id, String name, String email, String password, String role,
                 String phone, Double rating, Integer reviewsCount, LocalDateTime createdAt,
                 LocalDateTime updatedAt) {
         this.id = id;
@@ -101,12 +120,16 @@ public class User {
         this.password = password;
     }
 
-    public UserRole getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(UserRole role) {
+    public void setRole(String role) {
         this.role = role;
+    }
+
+    public UserRole getRoleEnum() {
+        return UserRole.fromValue(this.role);
     }
 
     public String getPhone() {
