@@ -1,14 +1,16 @@
 class ClientInfo {
   final String? name;
   final String? phone;
+  final String? email;
 
-  ClientInfo({this.name, this.phone});
+  ClientInfo({this.name, this.phone, this.email});
 }
 
 class PhotographerInfo {
   final String? name;
+  final double? rating;
 
-  PhotographerInfo({this.name});
+  PhotographerInfo({this.name, this.rating});
 }
 
 class Order {
@@ -27,6 +29,9 @@ class Order {
   final String? clientName;
   final String? photographerName;
   final String? clientPhone;
+  final String? clientEmail;
+  final String? photographerEmail;
+  final double? photographerRating;
 
   Order({
     required this.id,
@@ -42,17 +47,20 @@ class Order {
     this.clientName,
     this.photographerName,
     this.clientPhone,
+    this.clientEmail,
+    this.photographerEmail,
+    this.photographerRating,
   });
 
   // Добавляем геттеры для совместимости с кодом
   ClientInfo? get client {
     if (clientName == null) return null;
-    return ClientInfo(name: clientName, phone: clientPhone);
+    return ClientInfo(name: clientName, phone: clientPhone, email: clientEmail);
   }
 
   PhotographerInfo? get photographer {
     if (photographerName == null) return null;
-    return PhotographerInfo(name: photographerName);
+    return PhotographerInfo(name: photographerName, rating: photographerRating);
   }
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -78,6 +86,20 @@ class Order {
       return null;
     }
 
+    // Функция-помощник для безопасного извлечения Email
+    String? extractEmail(dynamic field) {
+      if (field == null) return null;
+      if (field is Map) return field['email'];
+      return null;
+    }
+
+    // Функция-помощник для безопасного извлечения Рейтинга
+    double? extractRating(dynamic field) {
+      if (field == null) return null;
+      if (field is Map) return (field['rating'] as num?)?.toDouble();
+      return null;
+    }
+
     return Order(
       id: json['_id'],
       clientId: extractId(json['clientId'])!,
@@ -94,6 +116,9 @@ class Order {
       clientName: extractName(json['clientId']),
       photographerName: extractName(json['photographerId']),
       clientPhone: extractPhone(json['clientId']),
+      clientEmail: extractEmail(json['clientId']),
+      photographerEmail: extractEmail(json['photographerId']),
+      photographerRating: extractRating(json['photographerId']),
     );
   }
 }
