@@ -37,12 +37,12 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole() != null ? request.getRole() : User.UserRole.CLIENT);
+        user.setRole(request.getRole() != null ? request.getRole() : "client");
         user.setPhone(request.getPhone());
 
         User savedUser = userRepository.save(user);
 
-        String accessToken = jwtTokenProvider.generateAccessToken(savedUser.getId(), savedUser.getRole().name());
+        String accessToken = jwtTokenProvider.generateAccessToken(savedUser.getId(), savedUser.getRoleEnum().name());
         String refreshToken = jwtTokenProvider.generateRefreshToken(savedUser.getId());
 
         return new AuthResponse(
@@ -63,7 +63,7 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRole().name());
+        String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRoleEnum().name());
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
 
         return new AuthResponse(
@@ -85,7 +85,7 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRole().name());
+        String newAccessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getRoleEnum().name());
 
         return new AuthResponse(
                 newAccessToken,

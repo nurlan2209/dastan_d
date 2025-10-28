@@ -6,7 +6,7 @@ public class AuthResponse {
     private String accessToken;
     private String refreshToken;
     private String userId;
-    private User.UserRole role;
+    private String role;
     private String name;
     private String email;
 
@@ -14,7 +14,7 @@ public class AuthResponse {
     public AuthResponse() {
     }
 
-    public AuthResponse(String accessToken, String refreshToken, String userId, User.UserRole role, String name, String email) {
+    public AuthResponse(String accessToken, String refreshToken, String userId, String role, String name, String email) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.userId = userId;
@@ -48,11 +48,11 @@ public class AuthResponse {
         this.userId = userId;
     }
 
-    public User.UserRole getRole() {
+    public String getRole() {
         return role;
     }
 
-    public void setRole(User.UserRole role) {
+    public void setRole(String role) {
         this.role = role;
     }
 
