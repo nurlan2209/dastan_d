@@ -143,8 +143,7 @@ class _PhotographerReviewsScreenState extends State<PhotographerReviewsScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  RatingWidget(
-                                      rating: review.rating.toDouble()),
+                                  RatingWidget(rating: review.rating),
                                   Text(
                                     'Заказ ID: ${review.orderId.substring(review.orderId.length - 6)}',
                                     style: TextStyle(

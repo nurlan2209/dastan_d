@@ -243,7 +243,7 @@ class OrderDetailsScreen extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   subtitle: order.photographer!.rating != null
-                      ? RatingWidget(rating: order.photographer!.rating!)
+                      ? RatingWidget(rating: order.photographer!.rating!.round())
                       : null,
                 ),
               ),
