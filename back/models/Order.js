@@ -7,12 +7,16 @@ const orderSchema = new mongoose.Schema({
     required: true,
   },
   photographerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  service: { type: String, required: true },
+  serviceId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Service",
+  },
+  service: { type: String, required: true }, // Оставляем для обратной совместимости
   date: { type: Date, required: true },
   location: { type: String, required: true },
   status: {
     type: String,
-    enum: ["new", "assigned", "in_progress", "completed", "archived"],
+    enum: ["new", "assigned", "in_progress", "completed", "archived", "cancelled"],
     default: "new",
   },
   price: { type: Number, required: true },

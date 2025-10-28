@@ -5,6 +5,7 @@ class User {
   final String role;
   final double rating;
   final String? phone;
+  final bool isActive;
 
   User({
     required this.id,
@@ -13,6 +14,7 @@ class User {
     required this.role,
     this.rating = 0.0,
     this.phone,
+    this.isActive = true,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class User {
       role: json['role'],
       rating: (json['rating'] ?? 0).toDouble(),
       phone: json['phone'],
+      isActive: json['isActive'] ?? true,
     );
   }
 
@@ -34,6 +37,7 @@ class User {
       'role': role,
       'rating': rating,
       'phone': phone,
+      'isActive': isActive,
     };
   }
 }

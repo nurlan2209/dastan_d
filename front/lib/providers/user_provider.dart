@@ -33,4 +33,33 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> toggleUserStatus(String userId) async {
+    if (_authProvider?.token == null) return;
+
+    try {
+      final userService = UserService(_authProvider!.token);
+      await userService.toggleUserStatus(userId);
+      // Обновить локальный список
+      await fetchUsers();
+    } catch (error) {
+      print('Error toggling user status: $error');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteUser(String userId) async {
+    if (_authProvider?.token == null) return;
+
+    try {
+      final userService = UserService(_authProvider!.token);
+      await userService.deleteUser(userId);
+      // Удалить из локального списка
+      _users.removeWhere((user) => user.id == userId);
+      notifyListeners();
+    } catch (error) {
+      print('Error deleting user: $error');
+      rethrow;
+    }
+  }
 }

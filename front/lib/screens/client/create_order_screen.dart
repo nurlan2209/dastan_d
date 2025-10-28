@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../providers/order_provider.dart';
+import '../../providers/service_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/service_model.dart';
 
 class CreateOrderScreen extends StatefulWidget {
   const CreateOrderScreen({super.key});
@@ -12,24 +15,33 @@ class CreateOrderScreen extends StatefulWidget {
 
 class _CreateOrderScreenState extends State<CreateOrderScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _serviceController = TextEditingController();
   final _locationController = TextEditingController();
-  final _priceController = TextEditingController();
   final _commentController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   bool _isLoading = false;
+  Service? _selectedService;
 
   Future<void> _createOrder() async {
-    // Ваша логика создания заказа остается без изменений
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedService == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Пожалуйста, выберите услугу'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
     try {
       await context.read<OrderProvider>().createOrder({
-        'service': _serviceController.text,
+        'serviceId': _selectedService!.id,
+        'service': _selectedService!.name,
         'location': _locationController.text,
-        'price': double.tryParse(_priceController.text) ?? 0.0,
+        'price': _selectedService!.price,
         'date': _selectedDate.toIso8601String(),
         'comment': _commentController.text,
       });
@@ -85,10 +97,30 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadServices();
+    });
+  }
+
+  Future<void> _loadServices() async {
+    final authProvider = context.read<AuthProvider>();
+    final serviceProvider = context.read<ServiceProvider>();
+    try {
+      await serviceProvider.fetchServices(authProvider.token!);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка загрузки услуг: $e')),
+        );
+      }
+    }
+  }
+
+  @override
   void dispose() {
-    _serviceController.dispose();
     _locationController.dispose();
-    _priceController.dispose();
     _commentController.dispose();
     super.dispose();
   }
@@ -109,13 +141,91 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
             children: [
               Text('Услуга*', style: textTheme.labelSmall),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _serviceController,
-                decoration: const InputDecoration(
-                  hintText: 'Напр. "Свадебная съемка"',
-                ),
-                validator: (v) => v!.isEmpty ? 'Обязательное поле' : null,
+              Consumer<ServiceProvider>(
+                builder: (context, serviceProvider, child) {
+                  if (serviceProvider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (serviceProvider.services.isEmpty) {
+                    return const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text('Услуги пока не добавлены'),
+                      ),
+                    );
+                  }
+
+                  return DropdownButtonFormField<Service>(
+                    value: _selectedService,
+                    decoration: const InputDecoration(
+                      hintText: 'Выберите услугу',
+                    ),
+                    items: serviceProvider.services.map((service) {
+                      return DropdownMenuItem(
+                        value: service,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(service.name),
+                            Text(
+                              '${service.price.toStringAsFixed(0)} ₸ • ${service.duration} мин',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (service) {
+                      setState(() {
+                        _selectedService = service;
+                      });
+                    },
+                    validator: (v) =>
+                        v == null ? 'Пожалуйста, выберите услугу' : null,
+                  );
+                },
               ),
+              if (_selectedService != null) ...[
+                const SizedBox(height: 12),
+                Card(
+                  color: Colors.blue.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _selectedService!.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        if (_selectedService!.description.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(_selectedService!.description),
+                        ],
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Стоимость: ${_selectedService!.price.toStringAsFixed(0)} ₸',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              'Длительность: ${_selectedService!.duration} мин',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
               Text('Место съёмки*', style: textTheme.labelSmall),
               const SizedBox(height: 8),
@@ -126,21 +236,6 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                 ),
                 validator: (v) => v!.isEmpty ? 'Обязательное поле' : null,
               ),
-              const SizedBox(height: 20),
-              Text('Предлагаемая цена (₸)*', style: textTheme.labelSmall),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _priceController,
-                decoration: const InputDecoration(hintText: 'Введите сумму'),
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Обязательное поле';
-                  if (double.tryParse(v) == null)
-                    return 'Введите корректное число';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
               Text('Дата и время*', style: textTheme.labelSmall),
               const SizedBox(height: 8),
               InkWell(
