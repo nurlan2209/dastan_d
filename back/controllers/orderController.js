@@ -16,8 +16,8 @@ exports.getOrders = async (req, res) => {
     if (req.user.role === "client") filter.clientId = req.user.id;
     if (req.query.status) filter.status = req.query.status;
     const orders = await Order.find(filter)
-      .populate("clientId", "name email phone") 
-      .populate("photographerId", "name email");
+      .populate("clientId", "name email phone")
+      .populate("photographerId", "name email rating");
 
     res.json(orders);
   } catch (err) {
@@ -43,7 +43,7 @@ exports.updateOrder = async (req, res) => {
       new: true,
     })
       .populate("clientId", "name email phone")
-      .populate("photographerId", "name email");
+      .populate("photographerId", "name email rating");
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
