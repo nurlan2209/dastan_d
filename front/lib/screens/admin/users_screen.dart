@@ -43,6 +43,106 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     }
   }
 
+  Future<void> _toggleUserStatus(String userId, bool currentStatus) async {
+    try {
+      await Provider.of<UserProvider>(context, listen: false)
+          .toggleUserStatus(userId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(currentStatus
+                ? 'Пользователь заблокирован'
+                : 'Пользователь активирован'),
+          ),
+        );
+        _refreshUsers();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteUser(String userId, String userName) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить пользователя?'),
+        content: Text('Вы уверены, что хотите удалить "$userName"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        await Provider.of<UserProvider>(context, listen: false)
+            .deleteUser(userId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Пользователь удален')),
+          );
+          _refreshUsers();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Ошибка: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  void _showUserActions(user) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(
+                user.isActive ? Icons.block : Icons.check_circle,
+                color: user.isActive ? Colors.red : Colors.green,
+              ),
+              title: Text(user.isActive ? 'Заблокировать' : 'Активировать'),
+              onTap: () {
+                Navigator.pop(context);
+                _toggleUserStatus(user.id, user.isActive);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Удалить'),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteUser(user.id, user.name);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.cancel),
+              title: const Text('Отмена'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildRoleChip(String role) {
     Color chipColor;
     String roleText;
@@ -201,19 +301,62 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),
                               child: ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor:
-                                      Color(0xFF2563EB).withOpacity(0.1),
-                                  foregroundColor: Color(0xFF2563EB),
-                                  child: Text(
-                                    user.name.substring(0, 1).toUpperCase(),
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  ),
+                                leading: Stack(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor:
+                                          Color(0xFF2563EB).withOpacity(0.1),
+                                      foregroundColor: Color(0xFF2563EB),
+                                      child: Text(
+                                        user.name.substring(0, 1).toUpperCase(),
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    if (!user.isActive)
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.block,
+                                            size: 12,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                                title: Text(
-                                  user.name,
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                title: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        user.name,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          decoration: user.isActive
+                                              ? null
+                                              : TextDecoration.lineThrough,
+                                        ),
+                                      ),
+                                    ),
+                                    if (!user.isActive)
+                                      Chip(
+                                        label: const Text('Заблокирован'),
+                                        labelStyle: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.white,
+                                        ),
+                                        backgroundColor: Colors.red,
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                  ],
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,9 +370,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                             fontSize: 12,
                                             color: Colors.grey.shade600),
                                       ),
+                                    const SizedBox(height: 4),
+                                    _buildRoleChip(user.role),
                                   ],
                                 ),
-                                trailing: _buildRoleChip(user.role),
+                                trailing: IconButton(
+                                  icon: const Icon(Icons.more_vert),
+                                  onPressed: () => _showUserActions(user),
+                                ),
                               ),
                             );
                           },

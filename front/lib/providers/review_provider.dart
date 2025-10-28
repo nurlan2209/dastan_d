@@ -24,4 +24,15 @@ class ReviewProvider with ChangeNotifier {
     await _reviewService.createReview(reviewData);
     await fetchReviews();
   }
+
+  Future<void> deleteReview(String reviewId) async {
+    try {
+      await _reviewService.deleteReview(reviewId);
+      _reviews.removeWhere((review) => review.id == reviewId);
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting review: $e');
+      rethrow;
+    }
+  }
 }

@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     rating: { type: Number, default: 0 },
     reviewsCount: { type: Number, default: 0 },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

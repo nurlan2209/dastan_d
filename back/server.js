@@ -30,6 +30,7 @@ app.use("/api/orders", require("./routes/orderRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/schedule", require("./routes/scheduleRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
+app.use("/api/services", require("./routes/serviceRoutes"));
 
 // 404 handler
 app.use(notFoundHandler);

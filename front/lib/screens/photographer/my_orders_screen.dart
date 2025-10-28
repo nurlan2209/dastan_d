@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
+import 'my_reviews_screen.dart';
 
 class PhotographerOrdersScreen extends StatefulWidget {
   const PhotographerOrdersScreen({super.key});
@@ -259,6 +260,18 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
         ),
         actions: [
           IconButton(
+            icon: Icon(Icons.rate_review, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PhotographerReviewsScreen(),
+                ),
+              );
+            },
+            tooltip: 'Мои отзывы',
+          ),
+          IconButton(
             icon: Icon(Icons.logout_outlined, color: Colors.white),
             onPressed: () => context.read<AuthProvider>().logout(),
             tooltip: 'Выйти',
@@ -344,7 +357,8 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
 
   Widget _buildOrderCard(Order order) {
     final clientName = order.client?.name ?? 'Неизвестный клиент';
-    final clientPhone = order.client?.phone ?? 'Нет номера';
+    final clientPhone = order.client?.phone;
+    final clientEmail = order.client?.email;
     final borderColor = _getStatusColor(order.status);
 
     return Container(
@@ -379,8 +393,11 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow(Icons.person_outline, '$clientName\n$clientPhone'),
-            _buildInfoRow(Icons.camera_alt_outlined, 'Вы'),
+            _buildInfoRow(Icons.person_outline, clientName),
+            if (clientPhone != null && clientPhone.isNotEmpty)
+              _buildInfoRow(Icons.phone, clientPhone),
+            if (clientEmail != null && clientEmail.isNotEmpty)
+              _buildInfoRow(Icons.email_outlined, clientEmail),
             _buildInfoRow(
               Icons.calendar_today_outlined,
               DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),

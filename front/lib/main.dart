@@ -9,6 +9,8 @@ import 'providers/order_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/report_provider.dart';
 import 'providers/schedule_provider.dart';
+import 'providers/service_provider.dart';
+import 'providers/review_provider.dart';
 
 import 'screens/auth_wrapper.dart';
 import 'screens/onboarding/onboarding_screen.dart';
@@ -72,6 +74,8 @@ class MyApp extends StatelessWidget {
             return previous..update(auth);
           },
         ),
+        ChangeNotifierProvider(create: (ctx) => ServiceProvider()),
+        ChangeNotifierProvider(create: (ctx) => ReviewProvider()),
       ],
       child: MaterialApp(
         title: 'Photostudio App',

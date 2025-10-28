@@ -25,11 +25,41 @@ exports.getReviews = async (req, res) => {
     const filter = req.query.photographerId
       ? { photographerId: req.query.photographerId }
       : {};
-    const reviews = await Review.find(filter).populate(
-      "clientId photographerId",
-      "name"
-    );
+    const reviews = await Review.find(filter)
+      .populate("clientId photographerId", "name")
+      .populate("orderId", "service date")
+      .sort({ createdAt: -1 });
     res.json(reviews);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Удалить отзыв (для админа - модерация)
+exports.deleteReview = async (req, res) => {
+  try {
+    const review = await Review.findByIdAndDelete(req.params.id);
+    if (!review) {
+      return res.status(404).json({ message: "Review not found" });
+    }
+
+    // Пересчитать рейтинг фотографа после удаления отзыва
+    const reviews = await Review.find({
+      photographerId: review.photographerId,
+    });
+
+    let avgRating = 0;
+    if (reviews.length > 0) {
+      avgRating =
+        reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+    }
+
+    await User.findByIdAndUpdate(review.photographerId, {
+      rating: avgRating,
+      reviewsCount: reviews.length,
+    });
+
+    res.json({ message: "Review deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../providers/report_provider.dart';
 import '../../services/report_service.dart';
 import '../../providers/auth_provider.dart';
+import 'photographer_payments_screen.dart';
 
 class AdminReportsScreen extends StatefulWidget {
   const AdminReportsScreen({super.key});
@@ -232,6 +233,35 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                         const SizedBox(height: 24),
                       ],
 
+                      const Divider(),
+                      const SizedBox(height: 24),
+
+                      // Выплаты фотографам
+                      Text(
+                        'Выплаты фотографам',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.payments, color: Colors.green),
+                          title: const Text('Расчет выплат'),
+                          subtitle: const Text('Просмотр ведомости выплат фотографам'),
+                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const PhotographerPaymentsScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
                       const Divider(),
                       const SizedBox(height: 24),
 

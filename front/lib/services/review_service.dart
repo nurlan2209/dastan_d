@@ -18,4 +18,8 @@ class ReviewService {
     final response = await _api.post('/reviews', data: reviewData);
     return Review.fromJson(response.data);
   }
+
+  Future<void> deleteReview(String reviewId) async {
+    await _api.delete('/reviews/$reviewId');
+  }
 }

@@ -7,9 +7,10 @@ const { generateCSV } = require("../utils/csvExporter");
 // Получить полную статистику для админ-панели
 exports.getSummary = async (req, res) => {
   try {
-    // Общая статистика по заказам
-    const totalOrders = await Order.countDocuments();
+    // Общая статистика по заказам (исключая отмененные)
+    const totalOrders = await Order.countDocuments({ status: { $ne: "cancelled" } });
     const totalRevenue = await Order.aggregate([
+      { $match: { status: { $ne: "cancelled" } } },
       { $group: { _id: null, total: { $sum: "$price" } } },
     ]);
 
@@ -23,9 +24,9 @@ exports.getSummary = async (req, res) => {
       { $group: { _id: "$role", count: { $sum: 1 } } },
     ]);
 
-    // Топ-5 фотографов по количеству заказов
+    // Топ-5 фотографов по количеству заказов (исключая отмененные)
     const topPhotographersByOrders = await Order.aggregate([
-      { $match: { photographerId: { $ne: null } } },
+      { $match: { photographerId: { $ne: null }, status: { $ne: "cancelled" } } },
       { $group: { _id: "$photographerId", orderCount: { $sum: 1 } } },
       { $sort: { orderCount: -1 } },
       { $limit: 5 },
@@ -60,7 +61,7 @@ exports.getSummary = async (req, res) => {
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const ordersByMonth = await Order.aggregate([
-      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      { $match: { createdAt: { $gte: sixMonthsAgo }, status: { $ne: "cancelled" } } },
       {
         $group: {
           _id: {
@@ -212,6 +213,77 @@ exports.exportCSV = async (req, res) => {
     res.send(csv);
   } catch (err) {
     console.error("Ошибка при экспорте CSV:", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Расчет выплат фотографам за выбранный период
+exports.getPhotographerPayments = async (req, res) => {
+  try {
+    const { startDate, endDate, percentage = 70 } = req.query;
+    const filter = {
+      status: "completed", // Только завершенные заказы
+      photographerId: { $ne: null }, // Только заказы с назначенным фотографом
+    };
+
+    // Фильтр по датам
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
+
+    // Агрегация выплат по фотографам
+    const payments = await Order.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: "$photographerId",
+          totalOrders: { $sum: 1 },
+          totalRevenue: { $sum: "$price" },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "photographer",
+        },
+      },
+      { $unwind: "$photographer" },
+      {
+        $project: {
+          photographerId: "$_id",
+          name: "$photographer.name",
+          email: "$photographer.email",
+          phone: "$photographer.phone",
+          totalOrders: 1,
+          totalRevenue: 1,
+          payment: {
+            $round: [
+              { $multiply: ["$totalRevenue", parseFloat(percentage) / 100] },
+              2,
+            ],
+          },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+    ]);
+
+    const summary = {
+      totalPhotographers: payments.length,
+      totalRevenue: payments.reduce((sum, p) => sum + p.totalRevenue, 0),
+      totalPayments: payments.reduce((sum, p) => sum + p.payment, 0),
+      percentage: parseFloat(percentage),
+    };
+
+    res.json({
+      summary,
+      payments,
+    });
+  } catch (err) {
+    console.error("Ошибка при расчете выплат:", err);
     res.status(500).json({ error: err.message });
   }
 };
