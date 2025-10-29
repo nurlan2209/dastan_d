@@ -11,6 +11,8 @@ import 'providers/report_provider.dart';
 import 'providers/schedule_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/review_provider.dart';
+import 'providers/locale_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'screens/auth_wrapper.dart';
 import 'screens/onboarding/onboarding_screen.dart';
@@ -24,6 +26,7 @@ import 'screens/admin/users_screen.dart' as users;
 import 'screens/admin/orders_screen.dart' as orders;
 import 'screens/admin/reports_screen.dart' as reports;
 import 'screens/admin/create_photographer_screen.dart';
+import 'screens/shared/settings_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -37,6 +40,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (ctx) => LocaleProvider()),
         ChangeNotifierProvider(create: (ctx) => AuthProvider()),
         ChangeNotifierProxyProvider<AuthProvider, OrderProvider>(
           create: (ctx) => OrderProvider(),
@@ -77,18 +81,24 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (ctx) => ServiceProvider()),
         ChangeNotifierProvider(create: (ctx) => ReviewProvider()),
       ],
-      child: MaterialApp(
-        title: 'Photostudio App',
-        theme: AppTheme.lightTheme,
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('ru', '')],
-        locale: const Locale('ru'),
-        home: const AuthWrapper(),
+      child: Consumer<LocaleProvider>(
+        builder: (context, localeProvider, child) {
+          return MaterialApp(
+            title: 'Photostudio App',
+            theme: AppTheme.lightTheme,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('kk'), // Казахский
+              Locale('ru'), // Русский
+            ],
+            locale: localeProvider.locale,
+            home: const AuthWrapper(),
         routes: {
           '/onboarding': (context) => const OnboardingScreen(),
           '/login': (context) => const LoginScreen(),
@@ -102,6 +112,9 @@ class MyApp extends StatelessWidget {
           '/admin/reports': (context) => const reports.AdminReportsScreen(),
           '/admin/create-photographer': (context) =>
               const CreatePhotographerScreen(),
+          '/settings': (context) => const SettingsScreen(),
+            },
+          );
         },
       ),
     );
