@@ -36,7 +36,7 @@ exports.generatePDF = (orders) => {
       doc
         .fontSize(24)
         .font(boldFont)
-        .text("Otchet po zakazam", { align: "center" });
+        .text("Отчет по заказам", { align: "center" });
 
       doc.moveDown(0.5);
 
@@ -45,7 +45,7 @@ exports.generatePDF = (orders) => {
         .fontSize(10)
         .font(regularFont)
         .text(
-          `Data formirovaniya: ${new Date().toLocaleDateString("ru-RU")}`,
+          `Дата формирования: ${new Date().toLocaleDateString("ru-RU")}`,
           { align: "center" }
         );
 
@@ -59,19 +59,19 @@ exports.generatePDF = (orders) => {
       doc
         .fontSize(12)
         .font(boldFont)
-        .text("Svodka:", { underline: true });
+        .text("Сводка:", { underline: true });
       doc.moveDown(0.3);
       doc
         .fontSize(11)
         .font(regularFont)
-        .text(`Vsego zakazov: ${totalOrders}`)
-        .text(`Obshaya vyruchka: ${totalRevenue.toLocaleString("ru-RU")} tg`)
-        .text(`Sredniy chek: ${Math.round(avgPrice).toLocaleString("ru-RU")} tg`);
+        .text(`Всего заказов: ${totalOrders}`)
+        .text(`Общая выручка: ${totalRevenue.toLocaleString("ru-RU")} тг`)
+        .text(`Средний чек: ${Math.round(avgPrice).toLocaleString("ru-RU")} тг`);
 
       doc.moveDown(1.5);
 
       // Таблица заказов
-      doc.fontSize(12).font(boldFont).text("Spisok zakazov:");
+      doc.fontSize(12).font(boldFont).text("Список заказов:");
       doc.moveDown(0.5);
 
       // Заголовок таблицы
@@ -82,8 +82,8 @@ exports.generatePDF = (orders) => {
         client: 120,
         photographer: 120,
         service: 100,
-        price: 70,
-        status: 80,
+        price: 80,
+        status: 70,
       };
 
       let currentY = tableTop;
@@ -151,12 +151,12 @@ exports.generatePDF = (orders) => {
       currentY = drawRow(
         {
           num: "#",
-          date: "Data",
-          client: "Klient",
-          photographer: "Fotograf",
-          service: "Usluga",
-          price: "Tsena",
-          status: "Status",
+          date: "Дата",
+          client: "Клиент",
+          photographer: "Фотограф",
+          service: "Услуга",
+          price: "Цена",
+          status: "Статус",
         },
         currentY,
         true
@@ -168,14 +168,14 @@ exports.generatePDF = (orders) => {
         .lineTo(545, currentY - 5)
         .stroke();
 
-      // Переводим статусы на транслит
+      // Переводим статусы
       const statusTranslate = {
-        new: "Novyy",
-        assigned: "Naznachen",
-        in_progress: "V rabote",
-        completed: "Zavershen",
-        cancelled: "Otmenen",
-        archived: "Arkhiv",
+        new: "Новый",
+        assigned: "Назначен",
+        in_progress: "В работе",
+        completed: "Завершен",
+        cancelled: "Отменен",
+        archived: "Архив",
       };
 
       // Данные заказов
@@ -213,7 +213,7 @@ exports.generatePDF = (orders) => {
           .fontSize(8)
           .font(regularFont)
           .text(
-            `Stranitsa ${i + 1} iz ${pageCount}`,
+            `Страница ${i + 1} из ${pageCount}`,
             50,
             doc.page.height - 50,
             { align: "center" }
