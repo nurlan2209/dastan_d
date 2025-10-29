@@ -12,25 +12,31 @@ exports.generatePDF = (orders) => {
       doc.on("end", () => resolve(Buffer.concat(buffers)));
       doc.on("error", reject);
 
-      // Try to load Cyrillic font
-      const fontPath = path.join(__dirname, "../fonts/Roboto-Regular.ttf");
+      // Try to load Cyrillic fonts
+      const fontPathRegular = path.join(__dirname, "../fonts/Roboto-Regular.ttf");
+      const fontPathBold = path.join(__dirname, "../fonts/Roboto-Bold.ttf");
       let useCustomFont = false;
 
       try {
-        if (fs.existsSync(fontPath)) {
-          doc.registerFont("Roboto", fontPath);
+        if (fs.existsSync(fontPathRegular)) {
+          doc.registerFont("Roboto", fontPathRegular);
+
+          // Register bold font if exists
+          if (fs.existsSync(fontPathBold)) {
+            doc.registerFont("Roboto-Bold", fontPathBold);
+          }
+
           useCustomFont = true;
         } else {
-          console.warn("Warning: Roboto font not found. PDF will use transliteration.");
+          console.warn("Warning: Roboto font not found. PDF will use fallback.");
           console.warn("To fix: Add Roboto-Regular.ttf to back/fonts/");
-          console.warn("Download: https://fonts.google.com/specimen/Roboto");
         }
       } catch (fontError) {
         console.warn("Font loading error:", fontError.message);
       }
 
       const regularFont = useCustomFont ? "Roboto" : "Helvetica";
-      const boldFont = useCustomFont ? "Roboto" : "Helvetica-Bold";
+      const boldFont = useCustomFont ? "Roboto-Bold" : "Helvetica-Bold";
 
       // Заголовок
       doc
