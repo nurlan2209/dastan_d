@@ -72,7 +72,7 @@
 
   "service": "Қызмет",
   "services": "Қызметтер",
-  "servicesСatalog": "Қызметтер каталогы",
+  "servicesCatalog": "Қызметтер каталогы",
   "selectService": "Қызметті таңдаңыз",
   "selectServiceHint": "Қызметті таңдаңыз",
   "pleaseSelectService": "Қызметті таңдаңыз",

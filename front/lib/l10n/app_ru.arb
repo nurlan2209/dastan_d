@@ -72,7 +72,7 @@
 
   "service": "Услуга",
   "services": "Услуги",
-  "servicesСatalog": "Каталог услуг",
+  "servicesCatalog": "Каталог услуг",
   "selectService": "Выберите услугу",
   "selectServiceHint": "Выберите услугу",
   "pleaseSelectService": "Пожалуйста, выберите услугу",
