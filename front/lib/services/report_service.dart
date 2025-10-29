@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
+import 'package:universal_html/html.dart' as html;
 import '../config/api_config.dart';
 
 class ReportService {
@@ -29,12 +29,25 @@ class ReportService {
     if (_token == null) throw Exception('Not authenticated');
 
     final url = '${ApiConfig.baseUrl}/reports/export/$format';
-    final uri = Uri.parse(url);
 
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    // Делаем HTTP запрос с токеном
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $_token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Создаем blob и скачиваем файл
+      final blob = html.Blob([response.bodyBytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', 'report-${DateTime.now().millisecondsSinceEpoch}.$format')
+        ..click();
+      html.Url.revokeObjectUrl(url);
     } else {
-      throw Exception('Could not launch $url');
+      throw Exception('Failed to download report: ${response.body}');
     }
   }
 

@@ -5,6 +5,7 @@ import '../../models/order_model.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
 import 'my_reviews_screen.dart';
+import 'order_details_screen.dart';
 
 class PhotographerOrdersScreen extends StatefulWidget {
   const PhotographerOrdersScreen({super.key});
@@ -412,51 +413,62 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
     final clientEmail = order.client?.email;
     final borderColor = _getStatusColor(order.status);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border(left: BorderSide(color: borderColor, width: 4)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 4,
-            offset: Offset(0, 2),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PhotographerOrderDetailsScreen(order: order),
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    order.service,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                _buildStatusChip(context, order.status),
-              ],
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border(left: BorderSide(color: borderColor, width: 4)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(5),
+              blurRadius: 4,
+              offset: Offset(0, 2),
             ),
-            const SizedBox(height: 12),
-            _buildInfoRow(Icons.person_outline, clientName),
-            if (clientPhone != null && clientPhone.isNotEmpty)
-              _buildInfoRow(Icons.phone, clientPhone),
-            if (clientEmail != null && clientEmail.isNotEmpty)
-              _buildInfoRow(Icons.email_outlined, clientEmail),
-            _buildInfoRow(
-              Icons.calendar_today_outlined,
-              DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),
-            ),
-            _buildInfoRow(Icons.location_on_outlined, order.location),
-            const SizedBox(height: 12),
-            _buildActionButtons(order),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      order.service,
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  _buildStatusChip(context, order.status),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.person_outline, clientName),
+              if (clientPhone != null && clientPhone.isNotEmpty)
+                _buildInfoRow(Icons.phone, clientPhone),
+              if (clientEmail != null && clientEmail.isNotEmpty)
+                _buildInfoRow(Icons.email_outlined, clientEmail),
+              _buildInfoRow(
+                Icons.calendar_today_outlined,
+                DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),
+              ),
+              _buildInfoRow(Icons.location_on_outlined, order.location),
+              const SizedBox(height: 12),
+              _buildActionButtons(order),
+            ],
+          ),
         ),
       ),
     );

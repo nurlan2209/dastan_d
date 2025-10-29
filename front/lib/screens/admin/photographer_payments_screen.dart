@@ -24,7 +24,9 @@ class _PhotographerPaymentsScreenState
     // Устанавливаем дату по умолчанию - текущий месяц
     final now = DateTime.now();
     _startDate = DateTime(now.year, now.month, 1);
-    _endDate = DateTime(now.year, now.month + 1, 0);
+    // Устанавливаем конец диапазона на сегодня или последний день месяца (что раньше)
+    final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+    _endDate = now.isBefore(lastDayOfMonth) ? now : lastDayOfMonth;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadPayments();
@@ -49,13 +51,22 @@ class _PhotographerPaymentsScreenState
   }
 
   Future<void> _selectDateRange() async {
+    final now = DateTime.now();
+
+    // Убедимся, что initialDateRange не выходит за пределы lastDate
+    DateTimeRange? initialRange;
+    if (_startDate != null && _endDate != null) {
+      final safeEndDate = _endDate!.isAfter(now)
+          ? DateTime(now.year, now.month, now.day)
+          : _endDate!;
+      initialRange = DateTimeRange(start: _startDate!, end: safeEndDate);
+    }
+
     final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-      initialDateRange: _startDate != null && _endDate != null
-          ? DateTimeRange(start: _startDate!, end: _endDate!)
-          : null,
+      lastDate: now,
+      initialDateRange: initialRange,
     );
 
     if (picked != null) {
