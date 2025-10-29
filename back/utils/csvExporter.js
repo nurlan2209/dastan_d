@@ -33,6 +33,7 @@ exports.generateCSV = async (orders) => {
       { id: "status", title: "Статус" },
       { id: "comment", title: "Комментарий" },
     ],
+    fieldDelimiter: ";", // Точка с запятой для Excel
     encoding: "utf8",
   });
 
