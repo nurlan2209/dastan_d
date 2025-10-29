@@ -10,8 +10,11 @@ exports.createReview = async (req, res) => {
     });
     const avgRating =
       reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+
+    // Обновляем рейтинг И количество отзывов
     await User.findByIdAndUpdate(req.body.photographerId, {
       rating: avgRating,
+      reviewsCount: reviews.length,
     });
 
     // Преобразуем ObjectId в строки для фронтенда
