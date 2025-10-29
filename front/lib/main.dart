@@ -12,7 +12,7 @@ import 'providers/schedule_provider.dart';
 import 'providers/service_provider.dart';
 import 'providers/review_provider.dart';
 import 'providers/locale_provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'l10n/app_localizations.dart';
 
 import 'screens/auth_wrapper.dart';
 import 'screens/onboarding/onboarding_screen.dart';

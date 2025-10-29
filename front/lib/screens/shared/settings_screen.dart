@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/language_switcher.dart';
@@ -37,12 +37,12 @@ class SettingsScreen extends StatelessWidget {
                   ListTile(
                     leading: const Icon(Icons.person),
                     title: Text(l10n.name),
-                    subtitle: Text(authProvider.name ?? '—'),
+                    subtitle: Text(authProvider.user?.name ?? '—'),
                   ),
                   ListTile(
                     leading: const Icon(Icons.email),
                     title: Text(l10n.email),
-                    subtitle: Text(authProvider.email ?? '—'),
+                    subtitle: Text(authProvider.user?.email ?? '—'),
                   ),
                 ],
               ),
