@@ -14,7 +14,18 @@ exports.createReview = async (req, res) => {
       rating: avgRating,
     });
 
-    res.status(201).json(review);
+    // Преобразуем ObjectId в строки для фронтенда
+    const reviewData = {
+      _id: review._id.toString(),
+      orderId: review.orderId.toString(),
+      clientId: review.clientId.toString(),
+      photographerId: review.photographerId.toString(),
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdAt,
+    };
+
+    res.status(201).json(reviewData);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

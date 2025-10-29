@@ -16,12 +16,23 @@ class Review {
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
+    // Функция для извлечения ID из объекта или строки
+    String extractId(dynamic value) {
+      if (value is String) {
+        return value;
+      } else if (value is Map) {
+        // Если это объект с _id или $oid
+        return value['_id']?.toString() ?? value['\$oid']?.toString() ?? value.toString();
+      }
+      return value.toString();
+    }
+
     return Review(
-      id: json['_id'],
-      orderId: json['orderId'],
-      clientId: json['clientId'],
-      photographerId: json['photographerId'],
-      rating: json['rating'],
+      id: extractId(json['_id']),
+      orderId: extractId(json['orderId']),
+      clientId: extractId(json['clientId']),
+      photographerId: extractId(json['photographerId']),
+      rating: json['rating'] is int ? json['rating'] : (json['rating'] as num).toInt(),
       comment: json['comment'],
     );
   }
