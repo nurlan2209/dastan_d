@@ -337,14 +337,15 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
                   _buildStatusChip(context, order.status),
                 ],
               ),
-            const SizedBox(height: 12),
-            _buildInfoRow(Icons.camera_alt_outlined, photographerName),
-            _buildInfoRow(
-              Icons.calendar_today_outlined,
-              DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),
-            ),
-            _buildInfoRow(Icons.location_on_outlined, order.location),
-          ],
+              const SizedBox(height: 12),
+              _buildInfoRow(Icons.camera_alt_outlined, photographerName),
+              _buildInfoRow(
+                Icons.calendar_today_outlined,
+                DateFormat('yyyy-MM-dd', 'ru_RU').format(order.date),
+              ),
+              _buildInfoRow(Icons.location_on_outlined, order.location),
+            ],
+          ),
         ),
       ),
     );

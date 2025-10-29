@@ -54,7 +54,7 @@ class _PhotographerPaymentsScreenState
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
       initialDateRange: _startDate != null && _endDate != null
-          ? DateRange(start: _startDate!, end: _endDate!)
+          ? DateTimeRange(start: _startDate!, end: _endDate!)
           : null,
     );
 
