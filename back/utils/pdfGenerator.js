@@ -1,4 +1,6 @@
 const PDFDocument = require("pdfkit");
+const path = require("path");
+const fs = require("fs");
 
 exports.generatePDF = (orders) => {
   return new Promise((resolve, reject) => {
@@ -10,20 +12,40 @@ exports.generatePDF = (orders) => {
       doc.on("end", () => resolve(Buffer.concat(buffers)));
       doc.on("error", reject);
 
+      // Try to load Cyrillic font
+      const fontPath = path.join(__dirname, "../fonts/Roboto-Regular.ttf");
+      let useCustomFont = false;
+
+      try {
+        if (fs.existsSync(fontPath)) {
+          doc.registerFont("Roboto", fontPath);
+          useCustomFont = true;
+        } else {
+          console.warn("Warning: Roboto font not found. PDF will use transliteration.");
+          console.warn("To fix: Add Roboto-Regular.ttf to back/fonts/");
+          console.warn("Download: https://fonts.google.com/specimen/Roboto");
+        }
+      } catch (fontError) {
+        console.warn("Font loading error:", fontError.message);
+      }
+
+      const regularFont = useCustomFont ? "Roboto" : "Helvetica";
+      const boldFont = useCustomFont ? "Roboto" : "Helvetica-Bold";
+
       // Заголовок
       doc
         .fontSize(24)
-        .font("Helvetica-Bold")
-        .text("Отчет по заказам", { align: "center" });
+        .font(boldFont)
+        .text("Otchet po zakazam", { align: "center" });
 
       doc.moveDown(0.5);
 
       // Дата генерации
       doc
         .fontSize(10)
-        .font("Helvetica")
+        .font(regularFont)
         .text(
-          `Дата формирования: ${new Date().toLocaleDateString("ru-RU")}`,
+          `Data formirovaniya: ${new Date().toLocaleDateString("ru-RU")}`,
           { align: "center" }
         );
 
@@ -36,20 +58,20 @@ exports.generatePDF = (orders) => {
 
       doc
         .fontSize(12)
-        .font("Helvetica-Bold")
-        .text("Сводка:", { underline: true });
+        .font(boldFont)
+        .text("Svodka:", { underline: true });
       doc.moveDown(0.3);
       doc
         .fontSize(11)
-        .font("Helvetica")
-        .text(`Всего заказов: ${totalOrders}`)
-        .text(`Общая выручка: ${totalRevenue.toLocaleString("ru-RU")} тг`)
-        .text(`Средний чек: ${Math.round(avgPrice).toLocaleString("ru-RU")} тг`);
+        .font(regularFont)
+        .text(`Vsego zakazov: ${totalOrders}`)
+        .text(`Obshaya vyruchka: ${totalRevenue.toLocaleString("ru-RU")} tg`)
+        .text(`Sredniy chek: ${Math.round(avgPrice).toLocaleString("ru-RU")} tg`);
 
       doc.moveDown(1.5);
 
       // Таблица заказов
-      doc.fontSize(12).font("Helvetica-Bold").text("Список заказов:");
+      doc.fontSize(12).font(boldFont).text("Spisok zakazov:");
       doc.moveDown(0.5);
 
       // Заголовок таблицы
@@ -68,7 +90,7 @@ exports.generatePDF = (orders) => {
 
       // Функция для отрисовки строки таблицы
       const drawRow = (rowData, y, isHeader = false) => {
-        const font = isHeader ? "Helvetica-Bold" : "Helvetica";
+        const font = isHeader ? boldFont : regularFont;
         const fontSize = isHeader ? 9 : 8;
         doc.font(font).fontSize(fontSize);
 
@@ -128,13 +150,13 @@ exports.generatePDF = (orders) => {
       // Заголовок таблицы
       currentY = drawRow(
         {
-          num: "№",
-          date: "Дата",
-          client: "Клиент",
-          photographer: "Фотограф",
-          service: "Услуга",
-          price: "Цена",
-          status: "Статус",
+          num: "#",
+          date: "Data",
+          client: "Klient",
+          photographer: "Fotograf",
+          service: "Usluga",
+          price: "Tsena",
+          status: "Status",
         },
         currentY,
         true
@@ -146,14 +168,14 @@ exports.generatePDF = (orders) => {
         .lineTo(545, currentY - 5)
         .stroke();
 
-      // Переводим статусы на русский
+      // Переводим статусы на транслит
       const statusTranslate = {
-        new: "Новый",
-        assigned: "Назначен",
-        in_progress: "В работе",
-        completed: "Завершен",
-        cancelled: "Отменен",
-        archived: "Архив",
+        new: "Novyy",
+        assigned: "Naznachen",
+        in_progress: "V rabote",
+        completed: "Zavershen",
+        cancelled: "Otmenen",
+        archived: "Arkhiv",
       };
 
       // Данные заказов
@@ -189,9 +211,9 @@ exports.generatePDF = (orders) => {
         doc.switchToPage(i);
         doc
           .fontSize(8)
-          .font("Helvetica")
+          .font(regularFont)
           .text(
-            `Страница ${i + 1} из ${pageCount}`,
+            `Stranitsa ${i + 1} iz ${pageCount}`,
             50,
             doc.page.height - 50,
             { align: "center" }
