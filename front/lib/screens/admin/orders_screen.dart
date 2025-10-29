@@ -121,9 +121,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                             order.comment!),
                       ],
 
-                      // Назначение фотографа (только если не назначен)
+                      // Назначение фотографа (только если не назначен или статус новый/в ожидании)
                       if (order.photographerId == null ||
-                          order.status == 'new') ...[
+                          order.status == 'new' ||
+                          order.status == 'pending') ...[
                         const SizedBox(height: 16),
                         const Divider(),
                         const SizedBox(height: 16),
