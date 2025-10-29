@@ -61,6 +61,39 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
     }
   }
 
+  Future<void> _logout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Выход'),
+        content: const Text('Вы уверены, что хотите выйти?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4444),
+            ),
+            child: const Text('Выйти'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await context.read<AuthProvider>().logout();
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/login',
+          (route) => false,
+        );
+      }
+    }
+  }
+
   Future<void> _completeOrder(String orderId) async {
     final resultController = TextEditingController();
     final theme = Theme.of(context);
@@ -140,6 +173,9 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'new':
+        return Colors.grey.shade600;
+      case 'assigned':
       case 'pending':
       case 'confirmed':
         return Colors.yellow.shade700;
@@ -147,6 +183,8 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
         return Colors.blue.shade600;
       case 'completed':
         return Colors.green.shade600;
+      case 'cancelled':
+        return Colors.red.shade600;
       default:
         return Colors.grey;
     }
@@ -157,6 +195,14 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
     String statusText;
 
     switch (status.toLowerCase()) {
+      case 'new':
+        chipColor = const Color(0xFFFEF3C7);
+        statusText = 'Новый';
+        break;
+      case 'assigned':
+        chipColor = const Color(0xFFDBEAFE);
+        statusText = 'Назначен';
+        break;
       case 'pending':
       case 'confirmed':
         chipColor = const Color(0xFFFEF3C7);
@@ -169,6 +215,10 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
       case 'completed':
         chipColor = const Color(0xFFD1FAE5);
         statusText = 'Завершён';
+        break;
+      case 'cancelled':
+        chipColor = const Color(0xFFFEE2E2);
+        statusText = 'Отменён';
         break;
       default:
         chipColor = const Color(0xFFF3F4F6);
@@ -273,7 +323,7 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
           ),
           IconButton(
             icon: Icon(Icons.logout_outlined, color: Colors.white),
-            onPressed: () => context.read<AuthProvider>().logout(),
+            onPressed: () => _logout(context),
             tooltip: 'Выйти',
           ),
         ],
@@ -290,7 +340,8 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
               final filteredOrders = provider.orders.where((order) {
                 if (_currentStatusFilter == 'all') return true;
                 if (_currentStatusFilter == 'new') {
-                  return order.status == 'pending' ||
+                  return order.status == 'assigned' ||
+                      order.status == 'pending' ||
                       order.status == 'confirmed';
                 }
                 return order.status == _currentStatusFilter;
@@ -413,6 +464,7 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
 
   Widget _buildActionButtons(Order order) {
     switch (order.status) {
+      case 'assigned':
       case 'pending':
       case 'confirmed':
         return SizedBox(

@@ -76,6 +76,9 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'new':
+        return Color(0xFF6B7280);
+      case 'assigned':
       case 'pending':
       case 'confirmed':
         return Color(0xFFFBBF24);
@@ -95,6 +98,14 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
     String statusText;
 
     switch (status.toLowerCase()) {
+      case 'new':
+        chipColor = Color(0xFFFEF3C7);
+        statusText = 'Новый';
+        break;
+      case 'assigned':
+        chipColor = Color(0xFFDBEAFE);
+        statusText = 'Назначен фотограф';
+        break;
       case 'pending':
         chipColor = Color(0xFFFEF3C7);
         statusText = 'В ожидании';
