@@ -72,6 +72,9 @@ export default function Register() {
                 className="input"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Минимум 6 символов, начинается с заглавной буквы, содержит специальный символ (!@#$%^&* и т.д.)
+              </p>
             </div>
 
             <div>

@@ -35,7 +35,11 @@ const validateRegister = [
     .notEmpty()
     .withMessage("Пароль обязателен")
     .isLength({ min: 6 })
-    .withMessage("Пароль должен содержать минимум 6 символов"),
+    .withMessage("Пароль должен содержать минимум 6 символов")
+    .matches(/^[A-ZА-Я]/)
+    .withMessage("Пароль должен начинаться с заглавной буквы")
+    .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/)
+    .withMessage("Пароль должен содержать хотя бы один специальный символ"),
   body("role")
     .optional()
     .isIn(["client", "photographer", "admin"])
@@ -163,7 +167,11 @@ const validateCreateUser = [
     .notEmpty()
     .withMessage("Пароль обязателен")
     .isLength({ min: 6 })
-    .withMessage("Пароль должен содержать минимум 6 символов"),
+    .withMessage("Пароль должен содержать минимум 6 символов")
+    .matches(/^[A-ZА-Я]/)
+    .withMessage("Пароль должен начинаться с заглавной буквы")
+    .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/)
+    .withMessage("Пароль должен содержать хотя бы один специальный символ"),
   body("role")
     .notEmpty()
     .withMessage("Роль обязательна")

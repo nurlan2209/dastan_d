@@ -26,7 +26,20 @@ const register = async (req, res) => {
     });
 
     await user.save();
-    res.status(201).json({ message: "Регистрация успешна" });
+
+    // Автоматическая авторизация после регистрации
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id);
+
+    res.status(201).json({
+      message: "Регистрация успешна",
+      accessToken,
+      refreshToken,
+      role: user.role,
+      userId: user._id,
+      name: user.name,
+      email: user.email
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -43,7 +56,14 @@ exports.login = async (req, res) => {
     }
     const accessToken = generateAccessToken(user._id, user.role);
     const refreshToken = generateRefreshToken(user._id);
-    res.json({ accessToken, refreshToken, role: user.role, userId: user._id });
+    res.json({
+      accessToken,
+      refreshToken,
+      role: user.role,
+      userId: user._id,
+      name: user.name,
+      email: user.email
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
