@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Camera } from 'lucide-react'
+import { Camera, Check, X } from 'lucide-react'
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -11,16 +11,45 @@ export default function Register() {
     phone: '',
   })
   const [loading, setLoading] = useState(false)
+  const [showPasswordHints, setShowPasswordHints] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
 
+  // Валидация пароля
+  const validatePassword = (password) => {
+    return {
+      minLength: password.length >= 6,
+      hasUpperCase: /[A-ZА-ЯЁ]/.test(password),
+      hasSpecialChar: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    }
+  }
+
+  const passwordValidation = validatePassword(formData.password)
+  const isPasswordValid = passwordValidation.minLength &&
+                          passwordValidation.hasUpperCase &&
+                          passwordValidation.hasSpecialChar
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Проверяем валидность пароля перед отправкой
+    if (!isPasswordValid) {
+      return
+    }
+
     setLoading(true)
 
     try {
-      await register(formData)
-      navigate('/')
+      const data = await register(formData)
+
+      // Перенаправляем на соответствующую страницу в зависимости от роли
+      if (data.role === 'admin') {
+        navigate('/admin')
+      } else if (data.role === 'photographer') {
+        navigate('/photographer')
+      } else {
+        navigate('/')
+      }
     } catch (error) {
       console.error(error)
     } finally {
@@ -69,9 +98,47 @@ export default function Register() {
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onFocus={() => setShowPasswordHints(true)}
                 className="input"
                 required
               />
+              {showPasswordHints && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg space-y-2">
+                  <p className="text-xs font-medium text-gray-700 mb-2">Требования к паролю:</p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-xs">
+                      {passwordValidation.minLength ? (
+                        <Check className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <X className="w-4 h-4 text-red-500" />
+                      )}
+                      <span className={passwordValidation.minLength ? 'text-green-700' : 'text-gray-600'}>
+                        Минимум 6 символов
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      {passwordValidation.hasUpperCase ? (
+                        <Check className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <X className="w-4 h-4 text-red-500" />
+                      )}
+                      <span className={passwordValidation.hasUpperCase ? 'text-green-700' : 'text-gray-600'}>
+                        Содержит заглавную букву
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      {passwordValidation.hasSpecialChar ? (
+                        <Check className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <X className="w-4 h-4 text-red-500" />
+                      )}
+                      <span className={passwordValidation.hasSpecialChar ? 'text-green-700' : 'text-gray-600'}>
+                        Содержит специальный символ (!@#$%^&* и т.д.)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -84,7 +151,11 @@ export default function Register() {
               />
             </div>
 
-            <button type="submit" disabled={loading} className="btn btn-primary w-full">
+            <button
+              type="submit"
+              disabled={loading || !isPasswordValid}
+              className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {loading ? 'Регистрация...' : 'Зарегистрироваться'}
             </button>
           </form>
