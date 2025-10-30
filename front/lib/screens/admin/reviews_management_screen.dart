@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../providers/review_provider.dart';
 import '../../models/review_model.dart';
 import '../../widgets/rating_widget.dart';
@@ -121,7 +120,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  RatingWidget(rating: review.rating.toDouble()),
+                                  RatingWidget(rating: review.rating),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Клиент ID: ${review.clientId}',

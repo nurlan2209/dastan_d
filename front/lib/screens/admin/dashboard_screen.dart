@@ -104,6 +104,12 @@ class DashboardScreen extends StatelessWidget {
               ),
               _buildDashboardCard(
                 context,
+                'Услуги',
+                Icons.work_outline,
+                () => Navigator.pushNamed(context, '/admin/services'),
+              ),
+              _buildDashboardCard(
+                context,
                 'Пользователи',
                 Icons.people_alt_outlined,
                 () => Navigator.pushNamed(context, '/admin/users'),
