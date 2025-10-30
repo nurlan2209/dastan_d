@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Camera, Check, X } from 'lucide-react'
+import { Camera, Check, X, Eye, EyeOff } from 'lucide-react'
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -12,6 +12,7 @@ export default function Register() {
   })
   const [loading, setLoading] = useState(false)
   const [showPasswordHints, setShowPasswordHints] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
 
@@ -94,14 +95,27 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Пароль</label>
-              <input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                onFocus={() => setShowPasswordHints(true)}
-                className="input"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  onFocus={() => setShowPasswordHints(true)}
+                  className="input pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
               {showPasswordHints && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg space-y-2">
                   <p className="text-xs font-medium text-gray-700 mb-2">Требования к паролю:</p>
