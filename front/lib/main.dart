@@ -23,6 +23,7 @@ import 'screens/admin/dashboard_screen.dart';
 import 'screens/admin/users_screen.dart' as users;
 import 'screens/admin/orders_screen.dart' as orders;
 import 'screens/admin/reports_screen.dart' as reports;
+import 'screens/admin/services_screen.dart';
 import 'screens/admin/create_photographer_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -100,6 +101,7 @@ class MyApp extends StatelessWidget {
           '/admin/users': (context) => const users.AdminUsersScreen(),
           '/admin/orders': (context) => const orders.AdminOrdersScreen(),
           '/admin/reports': (context) => const reports.AdminReportsScreen(),
+          '/admin/services': (context) => const ServicesScreen(),
           '/admin/create-photographer': (context) =>
               const CreatePhotographerScreen(),
         },

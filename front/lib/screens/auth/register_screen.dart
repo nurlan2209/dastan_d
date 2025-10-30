@@ -19,6 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
@@ -245,8 +246,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             horizontal: 16,
                             vertical: 14,
                           ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              color: Color(0xFF717182),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
                         ),
-                        obscureText: true,
+                        obscureText: _obscurePassword,
                         validator: (v) => (v == null || v.length < 6)
                             ? 'Пароль должен быть > 6 символов'
                             : null,
