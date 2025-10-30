@@ -17,7 +17,8 @@ exports.getOrders = async (req, res) => {
     if (req.query.status) filter.status = req.query.status;
     const orders = await Order.find(filter)
       .populate("clientId", "name email phone")
-      .populate("photographerId", "name email rating");
+      .populate("photographerId", "name email rating")
+      .populate("serviceId", "name price duration description");
 
     res.json(orders);
   } catch (err) {
@@ -27,9 +28,9 @@ exports.getOrders = async (req, res) => {
 
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate(
-      "clientId photographerId"
-    );
+    const order = await Order.findById(req.params.id)
+      .populate("clientId photographerId")
+      .populate("serviceId", "name price duration description");
     if (!order) return res.status(404).json({ message: "Order not found" });
     res.json(order);
   } catch (err) {
@@ -43,7 +44,8 @@ exports.updateOrder = async (req, res) => {
       new: true,
     })
       .populate("clientId", "name email phone")
-      .populate("photographerId", "name email rating");
+      .populate("photographerId", "name email rating")
+      .populate("serviceId", "name price duration description");
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });

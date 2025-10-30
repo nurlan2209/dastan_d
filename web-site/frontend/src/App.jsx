@@ -6,6 +6,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Orders from './pages/Orders'
 import Reports from './pages/Reports'
+import Services from './pages/Services'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children }) {
@@ -24,6 +25,7 @@ function App() {
           <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="orders" element={<Orders />} />
+            <Route path="services" element={<Services />} />
             <Route path="reports" element={<Reports />} />
           </Route>
         </Routes>

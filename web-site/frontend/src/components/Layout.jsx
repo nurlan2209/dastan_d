@@ -1,6 +1,6 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { LogOut, Camera, LayoutDashboard, ShoppingBag, BarChart3 } from 'lucide-react'
+import { LogOut, Camera, LayoutDashboard, ShoppingBag, BarChart3, Briefcase } from 'lucide-react'
 
 export default function Layout() {
   const { user, logout } = useAuth()
@@ -23,7 +23,8 @@ export default function Layout() {
         <nav className="space-y-2">
           <NavLink to="/" icon={<LayoutDashboard />}>Дашборд</NavLink>
           <NavLink to="/orders" icon={<ShoppingBag />}>Заказы</NavLink>
-          {user?.role === 'ADMIN' && (
+          <NavLink to="/services" icon={<Briefcase />}>Услуги</NavLink>
+          {user?.role === 'admin' && (
             <NavLink to="/reports" icon={<BarChart3 />}>Отчеты</NavLink>
           )}
         </nav>
