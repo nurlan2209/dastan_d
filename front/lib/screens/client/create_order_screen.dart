@@ -131,7 +131,23 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Новый заказ')),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF2563EB),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Новый заказ',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      backgroundColor: const Color(0xFFF9FAFB),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(

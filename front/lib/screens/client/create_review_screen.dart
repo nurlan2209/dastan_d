@@ -76,8 +76,22 @@ class _CreateReviewScreenState extends State<CreateReviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Оставить отзыв'),
+        backgroundColor: const Color(0xFF2563EB),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Оставить отзыв',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       ),
+      backgroundColor: const Color(0xFFF9FAFB),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(

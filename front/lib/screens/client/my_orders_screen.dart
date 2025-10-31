@@ -41,38 +41,6 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
     }
   }
 
-  Future<void> _logout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Выход'),
-        content: Text('Вы уверены, что хотите выйти?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFEF4444),
-            ),
-            child: Text('Выйти'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      await context.read<AuthProvider>().logout();
-      if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/login',
-          (route) => false,
-        );
-      }
-    }
-  }
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
@@ -202,6 +170,11 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
       appBar: AppBar(
         backgroundColor: Color(0xFF2563EB),
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.person_outline, color: Colors.white),
+          onPressed: () => Navigator.pushNamed(context, '/client-profile'),
+          tooltip: 'Профиль',
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -215,13 +188,6 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
                     fontSize: 14, color: Colors.white.withOpacity(0.9))),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout_outlined, color: Colors.white),
-            onPressed: () => _logout(context),
-            tooltip: 'Выйти',
-          ),
-        ],
       ),
       body: FutureBuilder(
         future: _loadDataFuture,

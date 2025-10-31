@@ -126,8 +126,22 @@ class OrderDetailsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Детали заказа'),
+        backgroundColor: const Color(0xFF2563EB),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Детали заказа',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       ),
+      backgroundColor: const Color(0xFFF9FAFB),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
