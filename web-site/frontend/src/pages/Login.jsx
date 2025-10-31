@@ -19,6 +19,10 @@ export default function Login() {
       navigate('/')
     } catch (error) {
       console.error(error)
+      // Проверяем, не подтвержден ли email
+      if (error.response?.status === 403 && error.response?.data?.emailNotVerified) {
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`)
+      }
     } finally {
       setLoading(false)
     }
@@ -52,9 +56,17 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Пароль
-              </label>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Пароль
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Забыли пароль?
+                </Link>
+              </div>
               <input
                 type="password"
                 value={password}

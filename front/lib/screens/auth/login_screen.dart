@@ -3,6 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
+import 'email_verification_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,6 +47,20 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (role == 'client') {
         Navigator.of(context).pushReplacementNamed('/home');
       }
+    } on EmailNotVerifiedException catch (error) {
+      if (!mounted) return;
+      // Email не подтвержден - переходим на экран подтверждения
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => EmailVerificationScreen(email: error.email),
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -52,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Icon(Icons.error_outline, color: Colors.white),
               SizedBox(width: 12),
-              Expanded(child: Text('Ошибка входа: ${error.toString()}')),
+              Expanded(child: Text(error.toString().replaceAll('Exception: ', ''))),
             ],
           ),
           backgroundColor: Color(0xFFEF4444),
@@ -252,7 +269,32 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
+
+                      // Forgot Password Link
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const ForgotPasswordScreen(),
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF2563EB),
+                          ),
+                          child: const Text(
+                            'Забыли пароль?',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
 
                       // Login Button
                       _isLoading

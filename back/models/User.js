@@ -14,6 +14,7 @@ const UserSchema = new mongoose.Schema(
     rating: { type: Number, default: 0 },
     reviewsCount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
+    emailVerified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
