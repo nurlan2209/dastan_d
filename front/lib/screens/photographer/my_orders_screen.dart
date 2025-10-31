@@ -296,6 +296,7 @@ class _PhotographerOrdersScreenState extends State<PhotographerOrdersScreen> {
       appBar: AppBar(
         backgroundColor: Color(0xFF2563EB),
         elevation: 0,
+        automaticallyImplyLeading: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

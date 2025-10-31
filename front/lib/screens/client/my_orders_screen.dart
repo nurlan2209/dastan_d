@@ -170,6 +170,7 @@ class MyOrdersScreenState extends State<MyOrdersScreen> {
       appBar: AppBar(
         backgroundColor: Color(0xFF2563EB),
         elevation: 0,
+        automaticallyImplyLeading: false,
         leading: IconButton(
           icon: Icon(Icons.person_outline, color: Colors.white),
           onPressed: () => Navigator.pushNamed(context, '/client-profile'),

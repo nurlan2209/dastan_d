@@ -24,6 +24,7 @@ import 'screens/client/create_order_screen.dart';
 import 'screens/client/client_profile_screen.dart';
 import 'screens/photographer/photographer_home_screen.dart';
 import 'screens/admin/dashboard_screen.dart';
+import 'screens/admin/admin_profile_screen.dart';
 import 'screens/admin/users_screen.dart' as users;
 import 'screens/admin/orders_screen.dart' as orders;
 import 'screens/admin/reports_screen.dart' as reports;
@@ -113,6 +114,7 @@ class MyApp extends StatelessWidget {
           '/client-profile': (context) => const ClientProfileScreen(),
           '/photographer/home': (context) => const PhotographerHomeScreen(),
           '/admin/dashboard': (context) => const DashboardScreen(),
+          '/admin-profile': (context) => const AdminProfileScreen(),
           '/admin/users': (context) => const users.AdminUsersScreen(),
           '/admin/orders': (context) => const orders.AdminOrdersScreen(),
           '/admin/reports': (context) => const reports.AdminReportsScreen(),

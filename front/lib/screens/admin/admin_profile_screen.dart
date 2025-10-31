@@ -1,27 +1,12 @@
-// photostudio_app/lib/screens/client/client_profile_screen.dart
+// photostudio_app/lib/screens/admin/admin_profile_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/order_provider.dart';
 import '../../services/auth_service.dart';
 
-class ClientProfileScreen extends StatefulWidget {
-  const ClientProfileScreen({super.key});
-
-  @override
-  State<ClientProfileScreen> createState() => _ClientProfileScreenState();
-}
-
-class _ClientProfileScreenState extends State<ClientProfileScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Загружаем заказы для статистики
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderProvider>().fetchOrders();
-    });
-  }
+class AdminProfileScreen extends StatelessWidget {
+  const AdminProfileScreen({super.key});
 
   Future<void> _logout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
@@ -57,7 +42,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
     }
   }
 
-  void _showChangePasswordDialog() {
+  void _showChangePasswordDialog(BuildContext context) {
     final formKey = GlobalKey<FormState>();
     final currentPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
@@ -201,9 +186,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       );
                     }
                   } finally {
-                    if (mounted) {
-                      setState(() => isLoading = false);
-                    }
+                    setState(() => isLoading = false);
                   }
                 }
               },
@@ -223,53 +206,6 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF030213),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF717182),
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
       ),
     );
   }
@@ -382,21 +318,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    final orderProvider = context.watch<OrderProvider>();
     final user = authProvider.user;
-    final orders = orderProvider.orders;
-
-    // Статистика заказов
-    final totalOrders = orders.length;
-    final completedOrders =
-        orders.where((o) => o.status.toLowerCase() == 'completed').length;
-    final inProgressOrders = orders
-        .where((o) =>
-            o.status.toLowerCase() == 'in_progress' ||
-            o.status.toLowerCase() == 'confirmed')
-        .length;
-    final cancelledOrders =
-        orders.where((o) => o.status.toLowerCase() == 'cancelled').length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -419,7 +341,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               ),
             ),
             Text(
-              'Клиент',
+              'Администратор',
               style: TextStyle(fontSize: 14, color: Colors.white70),
             ),
           ],
@@ -442,14 +364,14 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.person,
+                      Icons.admin_panel_settings,
                       size: 50,
                       color: Color(0xFF2563EB),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    user?.name ?? 'Пользователь',
+                    user?.name ?? 'Администратор',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -489,51 +411,10 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
               'Телефон',
               user?.phone ?? 'Не указан',
             ),
-            const SizedBox(height: 24),
-
-            // Статистика заказов
-            const Text(
-              'Статистика заказов',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF030213),
-              ),
-            ),
-            const SizedBox(height: 16),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.1,
-              children: [
-                _buildStatCard(
-                  'Всего заказов',
-                  totalOrders.toString(),
-                  Icons.shopping_bag_outlined,
-                  const Color(0xFF2563EB),
-                ),
-                _buildStatCard(
-                  'Завершенных',
-                  completedOrders.toString(),
-                  Icons.check_circle_outline,
-                  const Color(0xFF10B981),
-                ),
-                _buildStatCard(
-                  'В работе',
-                  inProgressOrders.toString(),
-                  Icons.pending_outlined,
-                  const Color(0xFFFBBF24),
-                ),
-                _buildStatCard(
-                  'Отмененных',
-                  cancelledOrders.toString(),
-                  Icons.cancel_outlined,
-                  const Color(0xFFEF4444),
-                ),
-              ],
+            _buildInfoTile(
+              Icons.badge_outlined,
+              'Роль',
+              'Администратор',
             ),
             const SizedBox(height: 24),
 
@@ -550,7 +431,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
             _buildActionButton(
               'Сменить пароль',
               Icons.lock_outline,
-              _showChangePasswordDialog,
+              () => _showChangePasswordDialog(context),
               const Color(0xFF2563EB),
             ),
             const SizedBox(height: 12),

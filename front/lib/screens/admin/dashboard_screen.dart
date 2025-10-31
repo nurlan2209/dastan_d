@@ -7,40 +7,6 @@ import '../../providers/auth_provider.dart';
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
-  Future<void> _logout(BuildContext context) async {
-    // Показываем диалог подтверждения
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Выход'),
-        content: Text('Вы уверены, что хотите выйти?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFEF4444),
-            ),
-            child: Text('Выйти'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && context.mounted) {
-      await context.read<AuthProvider>().logout();
-      if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/login',
-          (route) => false,
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,6 +14,12 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Color(0xFF2563EB),
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: Icon(Icons.person_outline, color: Colors.white),
+          onPressed: () => Navigator.pushNamed(context, '/admin-profile'),
+          tooltip: 'Профиль',
+        ),
         title: Text(
           'Панель Администратора',
           style: TextStyle(
@@ -56,13 +28,6 @@ class DashboardScreen extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout_outlined, color: Colors.white),
-            onPressed: () => _logout(context),
-            tooltip: 'Выйти',
-          ),
-        ],
       ),
       body: _buildDashboardGrid(context),
     );
