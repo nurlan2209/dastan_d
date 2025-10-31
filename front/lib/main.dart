@@ -21,6 +21,7 @@ import 'screens/auth/forgot_password_screen.dart';
 import 'screens/auth/reset_password_screen.dart';
 import 'screens/client/my_orders_screen.dart';
 import 'screens/client/create_order_screen.dart';
+import 'screens/client/client_profile_screen.dart';
 import 'screens/photographer/photographer_home_screen.dart';
 import 'screens/admin/dashboard_screen.dart';
 import 'screens/admin/users_screen.dart' as users;
@@ -109,6 +110,7 @@ class MyApp extends StatelessWidget {
           '/forgot-password': (context) => const ForgotPasswordScreen(),
           '/home': (context) => const MyOrdersScreen(),
           '/create-order': (context) => const CreateOrderScreen(),
+          '/client-profile': (context) => const ClientProfileScreen(),
           '/photographer/home': (context) => const PhotographerHomeScreen(),
           '/admin/dashboard': (context) => const DashboardScreen(),
           '/admin/users': (context) => const users.AdminUsersScreen(),
