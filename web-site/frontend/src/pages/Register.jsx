@@ -43,14 +43,8 @@ export default function Register() {
     try {
       const data = await register(formData)
 
-      // Перенаправляем на соответствующую страницу в зависимости от роли
-      if (data.role === 'admin') {
-        navigate('/admin')
-      } else if (data.role === 'photographer') {
-        navigate('/photographer')
-      } else {
-        navigate('/')
-      }
+      // Перенаправляем на страницу подтверждения email
+      navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`)
     } catch (error) {
       console.error(error)
     } finally {

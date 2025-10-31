@@ -81,7 +81,7 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> register(
+  Future<Map<String, dynamic>> register(
     String name,
     String email,
     String password,
@@ -89,9 +89,43 @@ class AuthProvider with ChangeNotifier {
     String phone,
   ) async {
     try {
-      await _authService.register(name, email, password, role, phone);
+      return await _authService.register(name, email, password, role, phone);
     } catch (e) {
       rethrow;
+    }
+  }
+
+  // Загрузка данных пользователя после успешной авторизации
+  Future<void> loadUserData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+      final userId = prefs.getString('userId');
+      final role = prefs.getString('role');
+
+      if (token != null && userId != null && role != null) {
+        _token = token;
+        _userId = userId;
+        _role = role;
+
+        // Получаем данные пользователя
+        try {
+          final userResponse = await http.get(
+            Uri.parse('${ApiConfig.baseUrl}/auth/me'),
+            headers: {'Authorization': 'Bearer $_token'},
+          ).timeout(Duration(seconds: 5));
+
+          if (userResponse.statusCode == 200) {
+            _user = User.fromJson(json.decode(userResponse.body));
+          }
+        } catch (e) {
+          print('Error fetching user data: $e');
+        }
+
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
     }
   }
 

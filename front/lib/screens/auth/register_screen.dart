@@ -27,7 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       // Роль всегда "client" при регистрации
-      await context.read<AuthProvider>().register(
+      final response = await context.read<AuthProvider>().register(
             _nameController.text,
             _emailController.text,
             _passwordController.text,
@@ -35,18 +35,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _phoneController.text,
           );
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Регистрация успешна! Теперь войдите.'),
+          content: Text('Регистрация успешна! Проверьте почту для подтверждения.'),
           backgroundColor: Colors.green,
         ),
       );
-      Navigator.of(context).pushReplacementNamed('/login');
+
+      // Переходим на экран подтверждения email
+      Navigator.of(context).pushReplacementNamed(
+        '/verify-email',
+        arguments: _emailController.text,
+      );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Ошибка регистрации: ${error.toString()}'),
+          content: Text(error.toString().replaceAll('Exception: ', '')),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
