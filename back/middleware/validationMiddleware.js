@@ -18,10 +18,14 @@ const validate = (req, res, next) => {
 
 // Валидация регистрации
 const validateRegister = [
-  body("name")
+  body("fullName")
+    .optional()
     .trim()
-    .notEmpty()
-    .withMessage("Имя обязательно")
+    .isLength({ min: 2, max: 50 })
+    .withMessage("Имя должно быть от 2 до 50 символов"),
+  body("name")
+    .optional()
+    .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage("Имя должно быть от 2 до 50 символов"),
   body("email")
@@ -40,9 +44,13 @@ const validateRegister = [
     .optional()
     .isIn(["client", "photographer", "admin"])
     .withMessage("Некорректная роль"),
+  body("phoneNumber")
+    .optional()
+    .matches(/^\+?[0-9\s]{10,20}$/)
+    .withMessage("Некорректный формат телефона"),
   body("phone")
     .optional()
-    .matches(/^\+?[0-9]{10,15}$/)
+    .matches(/^\+?[0-9\s]{10,20}$/)
     .withMessage("Некорректный формат телефона"),
   validate,
 ];
@@ -146,10 +154,14 @@ const validateMongoId = [
 
 // Валидация создания пользователя (админ)
 const validateCreateUser = [
-  body("name")
+  body("fullName")
+    .optional()
     .trim()
-    .notEmpty()
-    .withMessage("Имя обязательно")
+    .isLength({ min: 2, max: 50 })
+    .withMessage("Имя должно быть от 2 до 50 символов"),
+  body("name")
+    .optional()
+    .trim()
     .isLength({ min: 2, max: 50 })
     .withMessage("Имя должно быть от 2 до 50 символов"),
   body("email")
@@ -169,9 +181,13 @@ const validateCreateUser = [
     .withMessage("Роль обязательна")
     .isIn(["client", "photographer", "admin"])
     .withMessage("Некорректная роль"),
+  body("phoneNumber")
+    .optional()
+    .matches(/^\+?[0-9\s]{10,20}$/)
+    .withMessage("Некорректный формат телефона"),
   body("phone")
     .optional()
-    .matches(/^\+?[0-9]{10,15}$/)
+    .matches(/^\+?[0-9\s]{10,20}$/)
     .withMessage("Некорректный формат телефона"),
   validate,
 ];
@@ -179,6 +195,11 @@ const validateCreateUser = [
 // Валидация обновления пользователя
 const validateUpdateUser = [
   param("id").isMongoId().withMessage("Некорректный ID пользователя"),
+  body("fullName")
+    .optional()
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage("Имя должно быть от 2 до 50 символов"),
   body("name")
     .optional()
     .trim()
@@ -194,9 +215,13 @@ const validateUpdateUser = [
     .optional()
     .isIn(["client", "photographer", "admin"])
     .withMessage("Некорректная роль"),
+  body("phoneNumber")
+    .optional()
+    .matches(/^\+?[0-9\s]{10,20}$/)
+    .withMessage("Некорректный формат телефона"),
   body("phone")
     .optional()
-    .matches(/^\+?[0-9]{10,15}$/)
+    .matches(/^\+?[0-9\s]{10,20}$/)
     .withMessage("Некорректный формат телефона"),
   validate,
 ];

@@ -27,9 +27,16 @@ exports.getUserById = async (req, res) => {
 exports.createUser = async (req, res) => {
   try {
     const { name, fullName, email, password, role, phone, phoneNumber } = req.body;
+
+    // Проверяем наличие имени
+    const userName = fullName || name;
+    if (!userName) {
+      return res.status(400).json({ error: "Имя обязательно" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      fullName: fullName || name,
+      fullName: userName,
       email,
       password: hashedPassword,
       role,
@@ -44,10 +51,24 @@ exports.createUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const updates = req.body;
+    const updates = { ...req.body };
+
+    // Преобразуем name в fullName если есть
+    if (updates.name && !updates.fullName) {
+      updates.fullName = updates.name;
+      delete updates.name;
+    }
+
+    // Преобразуем phone в phoneNumber если есть
+    if (updates.phone && !updates.phoneNumber) {
+      updates.phoneNumber = updates.phone;
+      delete updates.phone;
+    }
+
     if (updates.password) {
       updates.password = await bcrypt.hash(updates.password, 10);
     }
+
     const user = await User.findByIdAndUpdate(req.params.id, updates, {
       new: true,
     }).select("-password");
