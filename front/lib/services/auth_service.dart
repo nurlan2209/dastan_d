@@ -47,11 +47,11 @@ class AuthService {
         Uri.parse('${ApiConfig.baseUrl}/auth/register'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'name': name,
+          'fullName': name,
           'email': email,
           'password': password,
           'role': role,
-          'phone': phone,
+          'phoneNumber': phone,
         }),
       );
 

@@ -75,14 +75,14 @@ class Order {
     // Функция-помощник для безопасного извлечения Имени
     String? extractName(dynamic field) {
       if (field == null) return null;
-      if (field is Map) return field['name'];
+      if (field is Map) return field['fullName'] ?? field['name'];
       return null;
     }
 
     // Функция-помощник для безопасного извлечения Телефона
     String? extractPhone(dynamic field) {
       if (field == null) return null;
-      if (field is Map) return field['phone'];
+      if (field is Map) return field['phoneNumber'] ?? field['phone'];
       return null;
     }
 
