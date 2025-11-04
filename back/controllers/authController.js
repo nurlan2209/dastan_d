@@ -36,6 +36,12 @@ const register = async (req, res) => {
   try {
     const { name, fullName, email, password, role, phone, phoneNumber } = req.body;
 
+    // Проверяем наличие имени
+    const userName = fullName || name;
+    if (!userName) {
+      return res.status(400).json({ message: "Имя обязательно" });
+    }
+
     // Валидация пароля
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
@@ -50,7 +56,7 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
-      fullName: fullName || name,
+      fullName: userName,
       email,
       password: hashedPassword,
       role: role || "client",
