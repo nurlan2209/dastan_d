@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     role: {
@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema(
       enum: ["client", "photographer", "admin"],
       default: "client",
     },
-    phone: { type: String, default: "" },
+    phoneNumber: { type: String, default: "" },
     rating: { type: Number, default: 0 },
     reviewsCount: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
