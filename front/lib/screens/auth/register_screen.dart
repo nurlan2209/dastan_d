@@ -36,15 +36,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
       if (!mounted) return;
 
+      // Загружаем данные пользователя после регистрации
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loadUserData();
+
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Регистрация успешна! Теперь вы можете войти в систему.'),
+          content: Text('Регистрация успешна! Добро пожаловать!'),
           backgroundColor: Colors.green,
         ),
       );
 
-      // Переходим на экран входа
-      Navigator.of(context).pushReplacementNamed('/login');
+      // Перенаправляем на нужную страницу в зависимости от роли
+      final role = response['role'] ?? 'client';
+      if (role == 'admin') {
+        Navigator.of(context).pushReplacementNamed('/admin/dashboard');
+      } else if (role == 'photographer') {
+        Navigator.of(context).pushReplacementNamed('/photographer/home');
+      } else {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

@@ -66,9 +66,17 @@ const register = async (req, res) => {
 
     await user.save();
 
+    // Генерируем токены для автоматического входа
+    const accessToken = generateAccessToken(user._id, user.role);
+    const refreshToken = generateRefreshToken(user._id);
+
     res.status(201).json({
-      message: "Регистрация успешна. Теперь вы можете войти в систему.",
+      message: "Регистрация успешна!",
+      accessToken,
+      refreshToken,
+      role: user.role,
       userId: user._id,
+      name: user.fullName,
       email: user.email
     });
   } catch (error) {
