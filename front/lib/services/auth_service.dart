@@ -59,7 +59,16 @@ class AuthService {
       print('Register response body: ${response.body}');
 
       if (response.statusCode == 201) {
-        return json.decode(response.body);
+        final data = json.decode(response.body);
+
+        // Сохраняем токены после успешной регистрации
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('accessToken', data['accessToken']);
+        await prefs.setString('refreshToken', data['refreshToken']);
+        await prefs.setString('role', data['role']);
+        await prefs.setString('userId', data['userId']);
+
+        return data;
       } else {
         final data = json.decode(response.body);
         throw Exception(data['message'] ?? 'Registration failed');
