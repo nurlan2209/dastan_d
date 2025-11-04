@@ -16,7 +16,6 @@ import 'screens/auth_wrapper.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
-import 'screens/auth/email_verification_screen.dart';
 import 'screens/auth/forgot_password_screen.dart';
 import 'screens/auth/reset_password_screen.dart';
 import 'screens/client/my_orders_screen.dart';
@@ -95,15 +94,6 @@ class MyApp extends StatelessWidget {
         supportedLocales: const [Locale('ru', '')],
         locale: const Locale('ru'),
         home: const AuthWrapper(),
-        onGenerateRoute: (settings) {
-          if (settings.name == '/verify-email') {
-            final email = settings.arguments as String;
-            return MaterialPageRoute(
-              builder: (context) => EmailVerificationScreen(email: email),
-            );
-          }
-          return null;
-        },
         routes: {
           '/onboarding': (context) => const OnboardingScreen(),
           '/login': (context) => const LoginScreen(),

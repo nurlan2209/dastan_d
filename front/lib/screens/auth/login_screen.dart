@@ -3,8 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/auth_service.dart';
-import 'email_verification_screen.dart';
 import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -47,20 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (role == 'client') {
         Navigator.of(context).pushReplacementNamed('/home');
       }
-    } on EmailNotVerifiedException catch (error) {
-      if (!mounted) return;
-      // Email не подтвержден - переходим на экран подтверждения
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => EmailVerificationScreen(email: error.email),
-        ),
-      );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

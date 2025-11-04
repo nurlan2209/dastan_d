@@ -1,8 +1,6 @@
 const express = require("express");
 const {
   register,
-  verifyEmail,
-  resendVerificationCode,
   login,
   forgotPassword,
   resetPassword,
@@ -18,8 +16,6 @@ const {
 } = require("../middleware/validationMiddleware");
 
 router.post("/register", validateRegister, register);
-router.post("/verify-email", verifyEmail);
-router.post("/resend-verification", resendVerificationCode);
 router.post("/login", validateLogin, login);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
