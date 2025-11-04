@@ -25,10 +25,6 @@ class AuthService {
         await prefs.setString('userId', data['userId']);
 
         return data;
-      } else if (response.statusCode == 403) {
-        // Email не подтвержден
-        final data = json.decode(response.body);
-        throw EmailNotVerifiedException(data['message'], data['email']);
       } else {
         final data = json.decode(response.body);
         throw Exception(data['message'] ?? 'Login failed');
@@ -70,59 +66,6 @@ class AuthService {
       }
     } catch (e) {
       print('Registration error: $e');
-      rethrow;
-    }
-  }
-
-  Future<Map<String, dynamic>> verifyEmail(String email, String code) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/auth/verify-email'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email, 'code': code}),
-      );
-
-      print('Verify email response status: ${response.statusCode}');
-      print('Verify email response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        // Сохраняем токены после успешной верификации
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('accessToken', data['accessToken']);
-        await prefs.setString('refreshToken', data['refreshToken']);
-        await prefs.setString('role', data['role']);
-        await prefs.setString('userId', data['userId']);
-
-        return data;
-      } else {
-        final data = json.decode(response.body);
-        throw Exception(data['message'] ?? 'Verification failed');
-      }
-    } catch (e) {
-      print('Email verification error: $e');
-      rethrow;
-    }
-  }
-
-  Future<void> resendVerificationCode(String email) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/auth/resend-verification'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email}),
-      );
-
-      print('Resend code response status: ${response.statusCode}');
-      print('Resend code response body: ${response.body}');
-
-      if (response.statusCode != 200) {
-        final data = json.decode(response.body);
-        throw Exception(data['message'] ?? 'Failed to resend code');
-      }
-    } catch (e) {
-      print('Resend code error: $e');
       rethrow;
     }
   }
@@ -214,15 +157,4 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('role');
   }
-}
-
-// Исключение для неподтвержденного email
-class EmailNotVerifiedException implements Exception {
-  final String message;
-  final String email;
-
-  EmailNotVerifiedException(this.message, this.email);
-
-  @override
-  String toString() => message;
 }

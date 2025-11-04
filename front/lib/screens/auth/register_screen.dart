@@ -38,16 +38,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Регистрация успешна! Проверьте почту для подтверждения.'),
+          content: Text('Регистрация успешна! Теперь вы можете войти в систему.'),
           backgroundColor: Colors.green,
         ),
       );
 
-      // Переходим на экран подтверждения email
-      Navigator.of(context).pushReplacementNamed(
-        '/verify-email',
-        arguments: _emailController.text,
-      );
+      // Переходим на экран входа
+      Navigator.of(context).pushReplacementNamed('/login');
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
