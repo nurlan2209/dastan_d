@@ -44,12 +44,12 @@ exports.generateCSV = async (orders) => {
     createdAt: o.createdAt
       ? new Date(o.createdAt).toLocaleDateString("ru-RU")
       : "",
-    client: o.clientId?.name || "—",
+    client: o.clientId?.fullName || "—",
     clientEmail: o.clientId?.email || "—",
-    clientPhone: o.clientId?.phone || "—",
-    photographer: o.photographerId?.name || "Не назначен",
+    clientPhone: o.clientId?.phoneNumber || "—",
+    photographer: o.photographerId?.fullName || "Не назначен",
     photographerEmail: o.photographerId?.email || "—",
-    photographerPhone: o.photographerId?.phone || "—",
+    photographerPhone: o.photographerId?.phoneNumber || "—",
     service: o.service || "—",
     location: o.location || "—",
     price: o.price || 0,

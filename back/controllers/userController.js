@@ -26,13 +26,15 @@ exports.getUserById = async (req, res) => {
 
 exports.createUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, fullName, email, password, role, phone, phoneNumber } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      name,
+      fullName: fullName || name,
       email,
       password: hashedPassword,
       role,
+      phoneNumber: phoneNumber || phone || "",
+      emailVerified: true,
     });
     res.status(201).json(user);
   } catch (err) {
@@ -79,7 +81,7 @@ exports.toggleUserStatus = async (req, res) => {
       message: user.isActive ? "User activated" : "User blocked",
       user: {
         id: user._id,
-        name: user.name,
+        name: user.fullName,
         email: user.email,
         isActive: user.isActive,
       },

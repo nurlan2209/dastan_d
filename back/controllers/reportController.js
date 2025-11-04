@@ -42,7 +42,7 @@ exports.getSummary = async (req, res) => {
       {
         $project: {
           _id: 1,
-          name: "$photographer.name",
+          name: "$photographer.fullName",
           email: "$photographer.email",
           rating: "$photographer.rating",
           orderCount: 1,
@@ -54,7 +54,7 @@ exports.getSummary = async (req, res) => {
     const topPhotographersByRating = await User.find({ role: "photographer" })
       .sort({ rating: -1, reviewsCount: -1 })
       .limit(5)
-      .select("name email rating reviewsCount");
+      .select("fullName email rating reviewsCount");
 
     // Динамика заказов по месяцам (последние 6 месяцев)
     const sixMonthsAgo = new Date();
@@ -255,9 +255,9 @@ exports.getPhotographerPayments = async (req, res) => {
       {
         $project: {
           photographerId: "$_id",
-          name: "$photographer.name",
+          name: "$photographer.fullName",
           email: "$photographer.email",
-          phone: "$photographer.phone",
+          phone: "$photographer.phoneNumber",
           totalOrders: 1,
           totalRevenue: 1,
           payment: {

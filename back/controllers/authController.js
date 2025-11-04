@@ -34,7 +34,7 @@ const validatePassword = (password) => {
 // Регистрация пользователя
 const register = async (req, res) => {
   try {
-    const { name, email, password, role, phone } = req.body;
+    const { name, fullName, email, password, role, phone, phoneNumber } = req.body;
 
     // Валидация пароля
     const passwordValidation = validatePassword(password);
@@ -50,11 +50,11 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
-      name,
+      fullName: fullName || name,
       email,
       password: hashedPassword,
       role: role || "client",
-      phone: phone || "",
+      phoneNumber: phoneNumber || phone || "",
       emailVerified: true,
     });
 
@@ -89,7 +89,7 @@ const login = async (req, res) => {
       refreshToken,
       role: user.role,
       userId: user._id,
-      name: user.name,
+      name: user.fullName,
       email: user.email
     });
   } catch (err) {
